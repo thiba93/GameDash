@@ -1,0 +1,41 @@
+# Security Baseline
+
+## RBAC
+- Roles: `player`, `staff`, `admin`.
+- Default role on register: `player`.
+- Staff/admin routes must reject non-privileged roles.
+
+## Authentication baseline
+- Email + password (hashed, never stored plaintext).
+- JWT access token + refresh token.
+- Refresh token must be revocable server-side.
+
+## Input and output safety
+- Validate all payloads at controller boundary.
+- Reject unknown fields where possible.
+- Sanitize user-generated text before rendering in frontend.
+
+## Audit logging requirements
+Critical actions that must be logged:
+- Auth: register, login, refresh, logout.
+- Account sanctions.
+- MMR updates after match result.
+- Economy transactions.
+- Map publish/update and moderation actions.
+
+## Secret and environment handling
+- Never commit real secrets.
+- Use `.env.example` as contract only.
+- Keep JWT and DB secrets outside source control.
+
+## Data and transport
+- Use TLS in non-local environments.
+- Enforce least privilege on DB credentials.
+- Store timestamps in UTC.
+
+## Threats considered for MVP
+- Privilege escalation attempts.
+- Broken access control.
+- Replay or abuse of refresh token.
+- Tampering with transaction endpoints.
+- Abuse/spam on UGC endpoints.

@@ -1,0 +1,27 @@
+{
+  "name": "gamedash",
+  "private": true,
+  "version": "0.1.0",
+  "description": "GameDash monorepo foundation",
+  "packageManager": "pnpm@10.33.0",
+  "scripts": {
+    "dev": "turbo run dev --parallel",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "validate:openapi": "redocly lint contracts/openapi.yaml",
+    "validate:prisma": "cross-env DATABASE_URL=postgresql://postgres:postgres@localhost:5432/gamedash?schema=public prisma validate --schema prisma/schema.prisma",
+    "validate:contracts": "pnpm run validate:openapi && pnpm run validate:prisma"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.22.0"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "@redocly/cli": "^1.25.11",
+    "prisma": "^5.22.0",
+    "turbo": "^2.1.1",
+    "typescript": "^5.7.2"
+  }
+}

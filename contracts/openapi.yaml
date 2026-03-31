@@ -1,0 +1,688 @@
+openapi: 3.0.3
+info:
+  title: GameDash API
+  version: 0.1.0
+  description: Baseline contract for GameDash MVP foundation.
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+servers:
+  - url: /api/v1
+tags:
+  - name: Health
+    description: API availability and runtime checks.
+  - name: Auth
+    description: Registration, login, token refresh, logout.
+  - name: Players
+    description: Player profile and competitive progression read models.
+  - name: Matchmaking
+    description: Queue join, leave, and status endpoints.
+  - name: Matches
+    description: Match lifecycle write endpoints.
+  - name: Economy
+    description: Store, wallet, and transaction endpoints.
+  - name: Maps
+    description: Community map publishing and interactions.
+  - name: Admin
+    description: Studio monitoring and admin summary endpoints.
+security:
+  - bearerAuth: []
+paths:
+  /health:
+    get:
+      security: []
+      operationId: getHealth
+      tags: [Health]
+      summary: API health status
+      responses:
+        "200":
+          description: API is healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  /auth/register:
+    post:
+      security: []
+      operationId: register
+      tags: [Auth]
+      summary: Register a player account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "201":
+          description: Registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthTokensResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  /auth/login:
+    post:
+      security: []
+      operationId: login
+      tags: [Auth]
+      summary: Login with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Logged in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthTokensResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  /auth/refresh:
+    post:
+      security: []
+      operationId: refreshToken
+      tags: [Auth]
+      summary: Refresh access token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshRequest"
+      responses:
+        "200":
+          description: Refreshed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthTokensResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [Auth]
+      summary: Logout and revoke refresh token
+      responses:
+        "204":
+          description: Logged out
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /players/{playerId}/mmr:
+    get:
+      operationId: getPlayerMmr
+      tags: [Players]
+      summary: Get player MMR by mode
+      parameters:
+        - $ref: "#/components/parameters/playerId"
+      responses:
+        "200":
+          description: Player MMR
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlayerMmrResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /players/{playerId}/matches:
+    get:
+      operationId: getPlayerMatches
+      tags: [Players]
+      summary: Get player match history
+      parameters:
+        - $ref: "#/components/parameters/playerId"
+      responses:
+        "200":
+          description: Match history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MatchHistoryItem"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /matchmaking/queue/join:
+    post:
+      operationId: joinQueue
+      tags: [Matchmaking]
+      summary: Join matchmaking queue
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QueueJoinRequest"
+      responses:
+        "200":
+          description: Queue status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QueueStatusResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /matchmaking/queue/leave:
+    post:
+      operationId: leaveQueue
+      tags: [Matchmaking]
+      summary: Leave matchmaking queue
+      responses:
+        "200":
+          description: Queue status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QueueStatusResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /matchmaking/queue/status:
+    get:
+      operationId: getQueueStatus
+      tags: [Matchmaking]
+      summary: Get current queue state
+      responses:
+        "200":
+          description: Queue status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QueueStatusResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /matches/{matchId}/result:
+    post:
+      operationId: submitMatchResult
+      tags: [Matches]
+      summary: Submit match result
+      parameters:
+        - $ref: "#/components/parameters/matchId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MatchResultRequest"
+      responses:
+        "200":
+          description: Match result accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MatchResultResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /economy/store/items:
+    get:
+      operationId: listStoreItems
+      tags: [Economy]
+      summary: List store items
+      responses:
+        "200":
+          description: Store items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/StoreItem"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /economy/wallet:
+    get:
+      operationId: getWallet
+      tags: [Economy]
+      summary: Get player wallet balances
+      responses:
+        "200":
+          description: Wallet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WalletResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /economy/transactions/purchase:
+    post:
+      operationId: purchaseStoreItem
+      tags: [Economy]
+      summary: Purchase store item
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PurchaseRequest"
+      responses:
+        "201":
+          description: Transaction created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /maps:
+    get:
+      operationId: listMaps
+      tags: [Maps]
+      summary: Browse maps
+      responses:
+        "200":
+          description: Map list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MapSummary"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      operationId: createMap
+      tags: [Maps]
+      summary: Create map
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateMapRequest"
+      responses:
+        "201":
+          description: Map created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MapSummary"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /maps/{mapId}/versions:
+    post:
+      operationId: createMapVersion
+      tags: [Maps]
+      summary: Create map version
+      parameters:
+        - $ref: "#/components/parameters/mapId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateMapVersionRequest"
+      responses:
+        "201":
+          description: Version created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MapVersionResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /maps/{mapId}/votes:
+    post:
+      operationId: voteMap
+      tags: [Maps]
+      summary: Vote a map
+      parameters:
+        - $ref: "#/components/parameters/mapId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VoteMapRequest"
+      responses:
+        "201":
+          description: Vote recorded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionAcceptedResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /maps/{mapId}/tests:
+    post:
+      operationId: testMap
+      tags: [Maps]
+      summary: Record map test
+      parameters:
+        - $ref: "#/components/parameters/mapId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TestMapRequest"
+      responses:
+        "201":
+          description: Test recorded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionAcceptedResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /admin/dashboard:
+    get:
+      operationId: getAdminDashboard
+      tags: [Admin]
+      summary: Get studio dashboard summary
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminDashboardSummary"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    playerId:
+      name: playerId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    matchId:
+      name: matchId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    mapId:
+      name: mapId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+  responses:
+    BadRequest:
+      description: Invalid request payload.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Unauthorized:
+      description: Missing or invalid credentials.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+  schemas:
+    HealthResponse:
+      type: object
+      required: [status, time]
+      properties:
+        status:
+          type: string
+          example: ok
+        time:
+          type: string
+          format: date-time
+    Role:
+      type: string
+      enum: [player, staff, admin]
+    GameMode:
+      type: string
+      enum: [ranked, unranked, fun]
+    MapStatus:
+      type: string
+      enum: [draft, beta, stable, hidden]
+    RegisterRequest:
+      type: object
+      required: [email, password, pseudo]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+        pseudo:
+          type: string
+        region:
+          type: string
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+    RefreshRequest:
+      type: object
+      required: [refreshToken]
+      properties:
+        refreshToken:
+          type: string
+    AuthTokensResponse:
+      type: object
+      required: [accessToken, refreshToken, role]
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        role:
+          $ref: "#/components/schemas/Role"
+    QueueJoinRequest:
+      type: object
+      required: [mode]
+      properties:
+        mode:
+          $ref: "#/components/schemas/GameMode"
+    QueueStatusResponse:
+      type: object
+      required: [state]
+      properties:
+        state:
+          type: string
+          enum: [offline, online, in_queue, in_match]
+        mode:
+          $ref: "#/components/schemas/GameMode"
+        estimatedWaitSeconds:
+          type: integer
+          minimum: 0
+    MatchResultRequest:
+      type: object
+      required: [winnerPlayerId]
+      properties:
+        winnerPlayerId:
+          type: string
+          format: uuid
+        notes:
+          type: string
+    MatchResultResponse:
+      type: object
+      required: [accepted, mmrUpdated]
+      properties:
+        accepted:
+          type: boolean
+        mmrUpdated:
+          type: boolean
+    PlayerMmrResponse:
+      type: object
+      required: [playerId, ratings]
+      properties:
+        playerId:
+          type: string
+          format: uuid
+        ratings:
+          type: array
+          items:
+            type: object
+            required: [mode, mmr, rank]
+            properties:
+              mode:
+                $ref: "#/components/schemas/GameMode"
+              mmr:
+                type: integer
+              rank:
+                type: string
+    MatchHistoryItem:
+      type: object
+      required: [matchId, mode, createdAt]
+      properties:
+        matchId:
+          type: string
+          format: uuid
+        mode:
+          $ref: "#/components/schemas/GameMode"
+        createdAt:
+          type: string
+          format: date-time
+        result:
+          type: string
+    StoreItem:
+      type: object
+      required: [id, name, currencyType, price]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        currencyType:
+          type: string
+          enum: [soft, hard]
+        price:
+          type: integer
+          minimum: 0
+    WalletResponse:
+      type: object
+      required: [softBalance, hardBalance]
+      properties:
+        softBalance:
+          type: integer
+          minimum: 0
+        hardBalance:
+          type: integer
+          minimum: 0
+    PurchaseRequest:
+      type: object
+      required: [storeItemId, quantity]
+      properties:
+        storeItemId:
+          type: string
+          format: uuid
+        quantity:
+          type: integer
+          minimum: 1
+    TransactionResponse:
+      type: object
+      required: [transactionId, status]
+      properties:
+        transactionId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [accepted, rejected]
+    CreateMapRequest:
+      type: object
+      required: [title, description, status]
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        status:
+          $ref: "#/components/schemas/MapStatus"
+    CreateMapVersionRequest:
+      type: object
+      required: [versionLabel, releaseNotes]
+      properties:
+        versionLabel:
+          type: string
+          example: v1
+        releaseNotes:
+          type: string
+    MapVersionResponse:
+      type: object
+      required: [mapId, versionLabel, createdAt]
+      properties:
+        mapId:
+          type: string
+          format: uuid
+        versionLabel:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    VoteMapRequest:
+      type: object
+      required: [value]
+      properties:
+        value:
+          type: integer
+          enum: [-1, 1]
+    TestMapRequest:
+      type: object
+      required: [completed]
+      properties:
+        completed:
+          type: boolean
+    ActionAcceptedResponse:
+      type: object
+      required: [accepted]
+      properties:
+        accepted:
+          type: boolean
+    MapSummary:
+      type: object
+      required: [id, title, status, popularityScore]
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        status:
+          $ref: "#/components/schemas/MapStatus"
+        popularityScore:
+          type: number
+          format: float
+    AdminDashboardSummary:
+      type: object
+      required: [activePlayers, dailyMatches, virtualRevenue, mapActivity]
+      properties:
+        activePlayers:
+          type: integer
+        dailyMatches:
+          type: integer
+        virtualRevenue:
+          type: integer
+        mapActivity:
+          type: integer
+    ErrorResponse:
+      type: object
+      required: [error, message]
+      properties:
+        error:
+          type: string
+        message:
+          type: string
