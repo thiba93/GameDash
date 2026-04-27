@@ -90,11 +90,13 @@ model PlayerProfile {
 model RefreshToken {
   id         String   @id @default(uuid())
   userId     String
-  tokenHash  String
+  tokenHash  String   @unique
   revokedAt  DateTime?
   expiresAt  DateTime
   createdAt  DateTime @default(now())
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, revokedAt, expiresAt])
 }
 
 model MatchmakingQueue {

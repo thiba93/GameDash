@@ -106,14 +106,69 @@ paths:
                 $ref: "#/components/schemas/AuthTokensResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /auth/me:
+    get:
+      operationId: getCurrentAuthUser
+      tags: [Auth]
+      summary: Get authenticated user and player profile
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUserResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
   /auth/logout:
     post:
       operationId: logout
       tags: [Auth]
       summary: Logout and revoke refresh token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LogoutRequest"
       responses:
         "204":
           description: Logged out
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /players/me/profile:
+    get:
+      operationId: getMyPlayerProfile
+      tags: [Players]
+      summary: Get current player profile
+      responses:
+        "200":
+          description: Current player profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlayerProfileResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    patch:
+      operationId: updateMyPlayerProfile
+      tags: [Players]
+      summary: Update current player profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePlayerProfileRequest"
+      responses:
+        "200":
+          description: Updated player profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlayerProfileResponse"
         "401":
           $ref: "#/components/responses/Unauthorized"
   /players/{playerId}/mmr:
@@ -458,7 +513,12 @@ components:
           minLength: 8
         pseudo:
           type: string
+        avatarUrl:
+          type: string
+          format: uri
         region:
+          type: string
+        bio:
           type: string
     LoginRequest:
       type: object
@@ -475,9 +535,55 @@ components:
       properties:
         refreshToken:
           type: string
+    LogoutRequest:
+      type: object
+      required: [refreshToken]
+      properties:
+        refreshToken:
+          type: string
+    PlayerProfileResponse:
+      type: object
+      required: [userId, pseudo]
+      properties:
+        userId:
+          type: string
+        pseudo:
+          type: string
+        avatarUrl:
+          type: string
+          format: uri
+        region:
+          type: string
+        bio:
+          type: string
+    UpdatePlayerProfileRequest:
+      type: object
+      properties:
+        pseudo:
+          type: string
+        avatarUrl:
+          type: string
+          format: uri
+        region:
+          type: string
+        bio:
+          type: string
+    AuthUserResponse:
+      type: object
+      required: [id, email, role, profile]
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+          format: email
+        role:
+          $ref: "#/components/schemas/Role"
+        profile:
+          $ref: "#/components/schemas/PlayerProfileResponse"
     AuthTokensResponse:
       type: object
-      required: [accessToken, refreshToken, role]
+      required: [accessToken, refreshToken, role, user]
       properties:
         accessToken:
           type: string
@@ -485,6 +591,8 @@ components:
           type: string
         role:
           $ref: "#/components/schemas/Role"
+        user:
+          $ref: "#/components/schemas/AuthUserResponse"
     QueueJoinRequest:
       type: object
       required: [mode]

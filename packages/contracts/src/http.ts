@@ -11,7 +11,9 @@ export interface RegisterRequest {
   email: string;
   password: string;
   pseudo: string;
+  avatarUrl?: string;
   region?: string;
+  bio?: string;
 }
 
 export interface LoginRequest {
@@ -23,10 +25,37 @@ export interface RefreshRequest {
   refreshToken: string;
 }
 
+export interface LogoutRequest {
+  refreshToken: string;
+}
+
+export interface PlayerProfileResponse {
+  userId: string;
+  pseudo: string;
+  avatarUrl?: string;
+  region?: string;
+  bio?: string;
+}
+
+export interface UpdatePlayerProfileRequest {
+  pseudo?: string;
+  avatarUrl?: string;
+  region?: string;
+  bio?: string;
+}
+
+export interface AuthUserResponse {
+  id: string;
+  email: string;
+  role: Role;
+  profile: PlayerProfileResponse;
+}
+
 export interface AuthTokensResponse {
   accessToken: string;
   refreshToken: string;
   role: Role;
+  user: AuthUserResponse;
 }
 
 export interface QueueJoinRequest {

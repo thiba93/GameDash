@@ -9,6 +9,8 @@
 - Email + password (hashed, never stored plaintext).
 - JWT access token + refresh token.
 - Refresh token must be revocable server-side.
+- Phase 1 runtime uses PBKDF2-SHA512 password hashes and HMAC-signed access tokens.
+- Refresh token values are stored only as hashes and are rotated on refresh.
 
 ## Input and output safety
 - Validate all payloads at controller boundary.
@@ -18,6 +20,7 @@
 ## Audit logging requirements
 Critical actions that must be logged:
 - Auth: register, login, refresh, logout.
+- Profile: player profile update.
 - Account sanctions.
 - MMR updates after match result.
 - Economy transactions.

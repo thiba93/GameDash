@@ -1,6 +1,8 @@
 import { Module } from "@nestjs/common";
+import { AuthGuard } from "./auth/auth.guard";
 import { AdminController } from "./admin/admin.controller";
 import { AuthController } from "./auth/auth.controller";
+import { AuthService } from "./auth/auth.service";
 import { EconomyController } from "./economy/economy.controller";
 import { HealthController } from "./health/health.controller";
 import { MapsController } from "./maps/maps.controller";
@@ -12,6 +14,7 @@ import {
   MatchmakingGateway,
   PlayerStatusGateway
 } from "./realtime/realtime.gateway";
+import { RolesGuard } from "./auth/roles.guard";
 
 @Module({
   imports: [],
@@ -25,6 +28,13 @@ import {
     MapsController,
     AdminController
   ],
-  providers: [MatchmakingGateway, PlayerStatusGateway, AdminMonitoringGateway]
+  providers: [
+    AuthService,
+    AuthGuard,
+    RolesGuard,
+    MatchmakingGateway,
+    PlayerStatusGateway,
+    AdminMonitoringGateway
+  ]
 })
 export class AppModule {}

@@ -44,6 +44,8 @@
 - All auth routes exist under `/api/v1/auth`.
 - JWT contract is explicit in OpenAPI.
 - Security baseline rules are documented.
+- Player profile routes exist under `/api/v1/players/me/profile`.
+- Staff/admin role enforcement is represented on protected admin routes.
 
 ### Matchmaking/MMR
 - Queue routes exist and return stable payload contracts.

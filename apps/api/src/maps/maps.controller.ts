@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, UseGuards } from "@nestjs/common";
 import type {
   ActionAcceptedResponse,
   CreateMapRequest,
@@ -8,8 +8,10 @@ import type {
   TestMapRequest,
   VoteMapRequest
 } from "@gamedash/contracts";
+import { AuthGuard } from "../auth/auth.guard";
 
 @Controller("maps")
+@UseGuards(AuthGuard)
 export class MapsController {
   @Get()
   listMaps(): MapSummary[] {

@@ -1,10 +1,12 @@
-import { Body, Controller, Param, Post } from "@nestjs/common";
+import { Body, Controller, Param, Post, UseGuards } from "@nestjs/common";
 import type {
   MatchResultRequest,
   MatchResultResponse
 } from "@gamedash/contracts";
+import { AuthGuard } from "../auth/auth.guard";
 
 @Controller("matches")
+@UseGuards(AuthGuard)
 export class MatchesController {
   @Post(":matchId/result")
   submitResult(
