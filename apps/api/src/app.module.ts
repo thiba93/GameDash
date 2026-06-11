@@ -7,6 +7,7 @@ import { EconomyController } from "./economy/economy.controller";
 import { HealthController } from "./health/health.controller";
 import { MapsController } from "./maps/maps.controller";
 import { MatchmakingController } from "./matchmaking/matchmaking.controller";
+import { MatchmakingService } from "./matchmaking/matchmaking.service";
 import { MatchesController } from "./matches/matches.controller";
 import { PlayersController } from "./players/players.controller";
 import {
@@ -30,6 +31,7 @@ import { RolesGuard } from "./auth/roles.guard";
   ],
   providers: [
     AuthService,
+    MatchmakingService,
     AuthGuard,
     RolesGuard,
     MatchmakingGateway,

@@ -171,6 +171,22 @@ paths:
                 $ref: "#/components/schemas/PlayerProfileResponse"
         "401":
           $ref: "#/components/responses/Unauthorized"
+  /players/ranks/config:
+    get:
+      operationId: getRankConfig
+      tags: [Players]
+      summary: Get MMR to rank mapping
+      responses:
+        "200":
+          description: Rank configuration
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RankConfig"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
   /players/{playerId}/mmr:
     get:
       operationId: getPlayerMmr
@@ -453,7 +469,6 @@ components:
       required: true
       schema:
         type: string
-        format: uuid
     matchId:
       name: matchId
       in: path
@@ -603,6 +618,8 @@ components:
       type: object
       required: [state]
       properties:
+        playerId:
+          type: string
         state:
           type: string
           enum: [offline, online, in_queue, in_match]
@@ -611,23 +628,58 @@ components:
         estimatedWaitSeconds:
           type: integer
           minimum: 0
+        queuedAt:
+          type: string
+          format: date-time
+        matchId:
+          type: string
+          format: uuid
+        opponentPlayerId:
+          type: string
     MatchResultRequest:
       type: object
       required: [winnerPlayerId]
       properties:
         winnerPlayerId:
           type: string
-          format: uuid
         notes:
+          type: string
+    MatchParticipantResult:
+      type: object
+      required: [playerId, outcome, mmrBefore, mmrAfter, mmrDelta, rankBefore, rankAfter]
+      properties:
+        playerId:
+          type: string
+        outcome:
+          type: string
+          enum: [win, loss, draw]
+        mmrBefore:
+          type: integer
+        mmrAfter:
+          type: integer
+        mmrDelta:
+          type: integer
+        rankBefore:
+          type: string
+        rankAfter:
           type: string
     MatchResultResponse:
       type: object
-      required: [accepted, mmrUpdated]
+      required: [accepted, mmrUpdated, matchId, mode, participants]
       properties:
         accepted:
           type: boolean
         mmrUpdated:
           type: boolean
+        matchId:
+          type: string
+          format: uuid
+        mode:
+          $ref: "#/components/schemas/GameMode"
+        participants:
+          type: array
+          items:
+            $ref: "#/components/schemas/MatchParticipantResult"
     PlayerMmrResponse:
       type: object
       required: [playerId, ratings]
@@ -659,8 +711,40 @@ components:
         createdAt:
           type: string
           format: date-time
+        finishedAt:
+          type: string
+          format: date-time
         result:
           type: string
+          enum: [win, loss, draw]
+        opponentPlayerId:
+          type: string
+        mmrBefore:
+          type: integer
+        mmrAfter:
+          type: integer
+        mmrDelta:
+          type: integer
+        rankBefore:
+          type: string
+        rankAfter:
+          type: string
+    RankConfig:
+      type: object
+      required: [mode, minMmr, rank, sortOrder]
+      properties:
+        mode:
+          $ref: "#/components/schemas/GameMode"
+        minMmr:
+          type: integer
+          minimum: 0
+        maxMmr:
+          type: integer
+          minimum: 0
+        rank:
+          type: string
+        sortOrder:
+          type: integer
     StoreItem:
       type: object
       required: [id, name, currencyType, price]

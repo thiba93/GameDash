@@ -113,12 +113,15 @@ model MatchmakingQueue {
 }
 
 model Match {
-  id           String             @id @default(uuid())
-  mode         GameMode
-  startedAt    DateTime           @default(now())
-  finishedAt   DateTime?
-  createdAt    DateTime           @default(now())
-  participants MatchParticipant[]
+  id                  String             @id @default(uuid())
+  mode                GameMode
+  startedAt           DateTime           @default(now())
+  finishedAt          DateTime?
+  winnerUserId        String?
+  resultSubmittedById String?
+  resultNotes         String?
+  createdAt           DateTime           @default(now())
+  participants        MatchParticipant[]
 }
 
 model MatchParticipant {
@@ -147,6 +150,20 @@ model PlayerMmr {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, mode])
+}
+
+model RankConfig {
+  id        String   @id @default(uuid())
+  mode      GameMode
+  minMmr    Int
+  maxMmr    Int?
+  rank      String
+  sortOrder Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([mode, rank])
+  @@index([mode, minMmr])
 }
 
 model Wallet {

@@ -1,14 +1,14 @@
 # Backlog MVP - Vertical Slices
 
 ## Slice 1 - Auth baseline
-Status: ready
+Status: done
 - API: register/login/refresh/logout endpoints.
 - Schema: user, profile, refresh token.
 - Contracts: auth request/response DTOs.
 - Validation: auth route smoke tests + typecheck.
 
 ## Slice 2 - Matchmaking and MMR baseline
-Status: ready
+Status: done
 - API: queue join/leave/status.
 - API: match result submit.
 - API: player mmr and match history.

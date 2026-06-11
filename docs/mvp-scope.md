@@ -51,6 +51,7 @@
 - Queue routes exist and return stable payload contracts.
 - Match result route exists with typed request payload.
 - Player MMR and match history routes exist.
+- Phase 2 baseline includes simulated match attribution, runtime MMR updates, rank mapping, and MMR audit entries.
 
 ### Economy
 - Store, wallet, and purchase route contracts exist.

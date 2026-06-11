@@ -1,30 +1,30 @@
 import { Body, Controller, Get, Post, UseGuards } from "@nestjs/common";
 import type { QueueJoinRequest, QueueStatusResponse } from "@gamedash/contracts";
 import { AuthGuard } from "../auth/auth.guard";
+import { CurrentUser } from "../auth/current-user.decorator";
+import type { AuthenticatedUser } from "../auth/auth.types";
+import { MatchmakingService } from "./matchmaking.service";
 
 @Controller("matchmaking/queue")
 @UseGuards(AuthGuard)
 export class MatchmakingController {
+  constructor(private readonly matchmakingService: MatchmakingService) {}
+
   @Post("join")
-  joinQueue(@Body() body: QueueJoinRequest): QueueStatusResponse {
-    return {
-      state: "in_queue",
-      mode: body.mode,
-      estimatedWaitSeconds: 30
-    };
+  joinQueue(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() body: QueueJoinRequest
+  ): QueueStatusResponse {
+    return this.matchmakingService.joinQueue(user, body);
   }
 
   @Post("leave")
-  leaveQueue(): QueueStatusResponse {
-    return {
-      state: "online"
-    };
+  leaveQueue(@CurrentUser() user: AuthenticatedUser): QueueStatusResponse {
+    return this.matchmakingService.leaveQueue(user);
   }
 
   @Get("status")
-  queueStatus(): QueueStatusResponse {
-    return {
-      state: "online"
-    };
+  queueStatus(@CurrentUser() user: AuthenticatedUser): QueueStatusResponse {
+    return this.matchmakingService.getQueueStatus(user);
   }
 }

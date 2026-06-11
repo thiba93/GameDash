@@ -26,6 +26,10 @@ Critical actions that must be logged:
 - Economy transactions.
 - Map publish/update and moderation actions.
 
+Phase 2 runtime requirement:
+- Match result submission must write one audit entry per participant MMR update.
+- MMR audit metadata must include match id, mode, previous MMR, next MMR, delta, previous rank, and next rank.
+
 ## Secret and environment handling
 - Never commit real secrets.
 - Use `.env.example` as contract only.

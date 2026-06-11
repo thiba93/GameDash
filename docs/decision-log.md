@@ -14,3 +14,9 @@
 - Phase 1 auth runtime uses in-memory storage until Prisma repositories are wired in a later persistence pass.
 - Passwords are hashed with PBKDF2-SHA512, access tokens are HMAC-signed, and refresh tokens are hash-stored and revocable.
 - Admin dashboard access is restricted to `staff` and `admin` roles through Nest guards.
+
+## 2026-06-11
+- Phase 2 matchmaking/MMR runtime uses in-memory queues, matches, ratings, histories, and MMR audit entries until Prisma repositories are wired in a later persistence pass.
+- Matchmaking creates a simulated match when two authenticated players join the same mode queue.
+- MMR deltas are mode-specific for MVP: ranked (+32/-24), unranked (+10/-8), fun (+5/-4).
+- Rank mapping is exposed as read-only configuration through the player API baseline.

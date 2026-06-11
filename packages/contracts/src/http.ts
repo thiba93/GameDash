@@ -63,9 +63,13 @@ export interface QueueJoinRequest {
 }
 
 export interface QueueStatusResponse {
+  playerId?: string;
   state: "offline" | "online" | "in_queue" | "in_match";
   mode?: GameMode;
   estimatedWaitSeconds?: number;
+  queuedAt?: string;
+  matchId?: string;
+  opponentPlayerId?: string;
 }
 
 export interface MatchResultRequest {
@@ -73,9 +77,22 @@ export interface MatchResultRequest {
   notes?: string;
 }
 
+export interface MatchParticipantResult {
+  playerId: string;
+  outcome: "win" | "loss" | "draw";
+  mmrBefore: number;
+  mmrAfter: number;
+  mmrDelta: number;
+  rankBefore: string;
+  rankAfter: string;
+}
+
 export interface MatchResultResponse {
   accepted: boolean;
   mmrUpdated: boolean;
+  matchId: string;
+  mode: GameMode;
+  participants: MatchParticipantResult[];
 }
 
 export interface PlayerMmrRating {
@@ -93,7 +110,22 @@ export interface MatchHistoryItem {
   matchId: string;
   mode: GameMode;
   createdAt: string;
-  result?: string;
+  finishedAt?: string;
+  result?: "win" | "loss" | "draw";
+  opponentPlayerId?: string;
+  mmrBefore?: number;
+  mmrAfter?: number;
+  mmrDelta?: number;
+  rankBefore?: string;
+  rankAfter?: string;
+}
+
+export interface RankConfig {
+  mode: GameMode;
+  minMmr: number;
+  maxMmr?: number;
+  rank: string;
+  sortOrder: number;
 }
 
 export interface StoreItem {
