@@ -28,3 +28,7 @@
 - MVP wallets are seeded with sandbox balances: 1000 soft currency and 20 hard currency.
 - Payment is simulated by debiting the in-app wallet only; no real payment processor or external payment credential is required.
 - Rejected purchases are journaled for auditability and do not mutate wallet or inventory state.
+- Phase 5 UGC runtime uses in-memory maps, versions, votes, tests, favorites, derived stats, and publish/update audit entries until Prisma repositories are wired in a later persistence pass.
+- Map popularity score is derived from vote score, completed tests, favorites, version count, and a small recency boost.
+- Public map browsing hides hidden maps by default; explicit status filtering can retrieve a specific status for later staff-facing workflows.
+- Moderation readiness is modeled with map status, review metadata, reports, and moderation events.

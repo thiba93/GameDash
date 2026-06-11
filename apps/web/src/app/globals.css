@@ -117,7 +117,8 @@ input {
 .history-list,
 .reward-list,
 .store-list,
-.inventory-list {
+.inventory-list,
+.map-list {
   display: grid;
   gap: 0.75rem;
   list-style: none;
@@ -127,7 +128,8 @@ input {
 .history-list li,
 .reward-list li,
 .store-list li,
-.inventory-list li {
+.inventory-list li,
+.map-list li {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto auto;
   align-items: center;
@@ -140,7 +142,8 @@ input {
 .history-list span,
 .reward-list span,
 .store-list span,
-.inventory-list span {
+.inventory-list span,
+.map-list span {
   color: #475569;
   text-transform: capitalize;
 }
@@ -149,7 +152,8 @@ input {
 .history-list strong,
 .reward-list strong,
 .store-list strong,
-.inventory-list strong {
+.inventory-list strong,
+.map-list strong {
   color: #0f172a;
 }
 
@@ -157,7 +161,8 @@ input {
 .history-list em,
 .reward-list em,
 .store-list em,
-.inventory-list em {
+.inventory-list em,
+.map-list em {
   color: #64748b;
   font-style: normal;
 }
@@ -228,7 +233,8 @@ input {
   .history-list li,
   .reward-list li,
   .store-list li,
-  .inventory-list li {
+  .inventory-list li,
+  .map-list li {
     grid-template-columns: 1fr;
   }
 }

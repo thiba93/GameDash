@@ -3,6 +3,7 @@ import type {
   InventoryItemResponse,
   LevelReward,
   MatchHistoryItem,
+  MapSummary,
   PlayerMmrResponse,
   PlayerProgressionResponse,
   StoreItem,
@@ -177,6 +178,53 @@ const latestTransaction: TransactionResponse = {
   balanceAfter: 600,
   createdAt: wallet.updatedAt
 };
+
+const communityMaps: MapSummary[] = [
+  {
+    id: "2a62f52f-9f7c-43e3-9201-897ad1627262",
+    creatorId: "usr_creator",
+    title: "Sky Arena",
+    description: "Vertical duel arena with jump pads and fast test loops.",
+    tags: ["arena", "ranked"],
+    status: "beta",
+    popularityScore: 30,
+    latestVersionLabel: "v1",
+    createdAt: "2026-06-11T12:00:00.000Z",
+    updatedAt: "2026-06-11T12:20:00.000Z",
+    stats: {
+      mapId: "2a62f52f-9f7c-43e3-9201-897ad1627262",
+      versionCount: 1,
+      voteScore: 1,
+      upvotes: 1,
+      downvotes: 0,
+      completedTests: 1,
+      favorites: 1,
+      popularityScore: 30
+    }
+  },
+  {
+    id: "b2351fd5-3838-40c5-9df6-f79b55ed0e58",
+    creatorId: "usr_creator",
+    title: "Factory Rush",
+    description: "Compact route for speedrun tests and creator iteration.",
+    tags: ["speedrun", "fun"],
+    status: "stable",
+    popularityScore: 18,
+    latestVersionLabel: "v2",
+    createdAt: "2026-06-11T09:00:00.000Z",
+    updatedAt: "2026-06-11T12:10:00.000Z",
+    stats: {
+      mapId: "b2351fd5-3838-40c5-9df6-f79b55ed0e58",
+      versionCount: 2,
+      voteScore: 0,
+      upvotes: 1,
+      downvotes: 1,
+      completedTests: 1,
+      favorites: 0,
+      popularityScore: 18
+    }
+  }
+];
 
 export default function HomePage() {
   return (
@@ -400,6 +448,42 @@ export default function HomePage() {
               <dt>Balance</dt>
               <dd>
                 {latestTransaction.balanceBefore} to {latestTransaction.balanceAfter}
+              </dd>
+            </div>
+          </dl>
+        </section>
+      </section>
+
+      <section className="competition-grid" aria-label="Community maps">
+        <section className="panel">
+          <h2>Community maps</h2>
+          <ul className="map-list">
+            {communityMaps.map((map) => (
+              <li key={map.id}>
+                <span>{map.status}</span>
+                <strong>{map.title}</strong>
+                <em>{map.popularityScore}</em>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section className="panel">
+          <h2>UGC activity</h2>
+          <dl>
+            <div>
+              <dt>Search tags</dt>
+              <dd>{communityMaps[0]?.tags.join(", ")}</dd>
+            </div>
+            <div>
+              <dt>Latest version</dt>
+              <dd>{communityMaps[0]?.latestVersionLabel}</dd>
+            </div>
+            <div>
+              <dt>Votes / tests / favs</dt>
+              <dd>
+                {communityMaps[0]?.stats.voteScore} / {communityMaps[0]?.stats.completedTests} /{" "}
+                {communityMaps[0]?.stats.favorites}
               </dd>
             </div>
           </dl>

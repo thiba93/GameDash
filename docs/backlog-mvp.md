@@ -29,7 +29,7 @@ Status: done
 - Contracts: wallet/store/purchase DTOs.
 
 ## Slice 5 - UGC maps baseline
-Status: ready
+Status: done
 - API: create map, add version, vote, test, list maps.
 - Schema: map, map version, vote, test, favorite.
 - Contracts: map creation/version/vote/test DTOs.

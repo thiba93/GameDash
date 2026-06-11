@@ -31,6 +31,7 @@
 - Vote map.
 - Mark map test.
 - Browse maps.
+- Favorite maps, search maps, and read creator/map stats.
 
 ### Studio/admin baseline
 - Admin dashboard placeholder endpoint.
@@ -74,6 +75,8 @@
 ### Maps/UGC
 - All map baseline routes exist with typed payload contracts.
 - Versioning and vote/test entities exist in Prisma schema.
+- Phase 5 baseline includes map creation metadata, version release notes, votes, tests, favorites, search filters, creator/map stats, popularity scoring, and map publish/update audit entries.
+- Moderation-relevant data exists through map status, review metadata, reports, and moderation events for later backoffice workflows.
 
 ### Backoffice/admin
 - Admin baseline route exists.

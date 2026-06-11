@@ -424,6 +424,23 @@ paths:
       operationId: listMaps
       tags: [Maps]
       summary: Browse maps
+      parameters:
+        - name: q
+          in: query
+          schema:
+            type: string
+        - name: tag
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            $ref: "#/components/schemas/MapStatus"
+        - name: creatorId
+          in: query
+          schema:
+            type: string
       responses:
         "200":
           description: Map list
@@ -452,6 +469,58 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MapSummary"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /maps/creators/{creatorId}/stats:
+    get:
+      operationId: getCreatorMapStats
+      tags: [Maps]
+      summary: Get creator map statistics
+      parameters:
+        - name: creatorId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Creator map statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreatorMapStatsResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /maps/{mapId}:
+    get:
+      operationId: getMap
+      tags: [Maps]
+      summary: Get map detail
+      parameters:
+        - $ref: "#/components/parameters/mapId"
+      responses:
+        "200":
+          description: Map detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MapDetailResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /maps/{mapId}/stats:
+    get:
+      operationId: getMapStats
+      tags: [Maps]
+      summary: Get map statistics
+      parameters:
+        - $ref: "#/components/parameters/mapId"
+      responses:
+        "200":
+          description: Map statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MapStatsResponse"
         "401":
           $ref: "#/components/responses/Unauthorized"
   /maps/{mapId}/versions:
@@ -495,7 +564,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ActionAcceptedResponse"
+                $ref: "#/components/schemas/MapInteractionResponse"
         "401":
           $ref: "#/components/responses/Unauthorized"
   /maps/{mapId}/tests:
@@ -517,7 +586,29 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ActionAcceptedResponse"
+                $ref: "#/components/schemas/MapInteractionResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /maps/{mapId}/favorites:
+    post:
+      operationId: favoriteMap
+      tags: [Maps]
+      summary: Favorite or unfavorite a map
+      parameters:
+        - $ref: "#/components/parameters/mapId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FavoriteMapRequest"
+      responses:
+        "201":
+          description: Favorite state recorded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MapInteractionResponse"
         "401":
           $ref: "#/components/responses/Unauthorized"
   /admin/dashboard:
@@ -1104,12 +1195,17 @@ components:
           type: string
     MapVersionResponse:
       type: object
-      required: [mapId, versionLabel, createdAt]
+      required: [id, mapId, versionLabel, releaseNotes, createdAt]
       properties:
+        id:
+          type: string
+          format: uuid
         mapId:
           type: string
           format: uuid
         versionLabel:
+          type: string
+        releaseNotes:
           type: string
         createdAt:
           type: string
@@ -1127,24 +1223,148 @@ components:
       properties:
         completed:
           type: boolean
+    FavoriteMapRequest:
+      type: object
+      required: [favorited]
+      properties:
+        favorited:
+          type: boolean
     ActionAcceptedResponse:
       type: object
       required: [accepted]
       properties:
         accepted:
           type: boolean
+    MapStatsResponse:
+      type: object
+      required:
+        [
+          mapId,
+          versionCount,
+          voteScore,
+          upvotes,
+          downvotes,
+          completedTests,
+          favorites,
+          popularityScore
+        ]
+      properties:
+        mapId:
+          type: string
+          format: uuid
+        versionCount:
+          type: integer
+          minimum: 0
+        voteScore:
+          type: integer
+        upvotes:
+          type: integer
+          minimum: 0
+        downvotes:
+          type: integer
+          minimum: 0
+        completedTests:
+          type: integer
+          minimum: 0
+        favorites:
+          type: integer
+          minimum: 0
+        popularityScore:
+          type: number
+          format: float
     MapSummary:
       type: object
-      required: [id, title, status, popularityScore]
+      required:
+        [
+          id,
+          creatorId,
+          title,
+          description,
+          tags,
+          status,
+          popularityScore,
+          createdAt,
+          updatedAt,
+          stats
+        ]
       properties:
         id:
           type: string
           format: uuid
+        creatorId:
+          type: string
         title:
           type: string
+        description:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
         status:
           $ref: "#/components/schemas/MapStatus"
         popularityScore:
+          type: number
+          format: float
+        latestVersionLabel:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        stats:
+          $ref: "#/components/schemas/MapStatsResponse"
+    MapDetailResponse:
+      allOf:
+        - $ref: "#/components/schemas/MapSummary"
+        - type: object
+          required: [versions]
+          properties:
+            versions:
+              type: array
+              items:
+                $ref: "#/components/schemas/MapVersionResponse"
+    MapInteractionResponse:
+      allOf:
+        - $ref: "#/components/schemas/ActionAcceptedResponse"
+        - type: object
+          required: [map]
+          properties:
+            map:
+              $ref: "#/components/schemas/MapSummary"
+    CreatorMapStatsResponse:
+      type: object
+      required:
+        [
+          creatorId,
+          totalMaps,
+          publishedMaps,
+          totalVotes,
+          totalTests,
+          totalFavorites,
+          averagePopularityScore
+        ]
+      properties:
+        creatorId:
+          type: string
+        totalMaps:
+          type: integer
+          minimum: 0
+        publishedMaps:
+          type: integer
+          minimum: 0
+        totalVotes:
+          type: integer
+          minimum: 0
+        totalTests:
+          type: integer
+          minimum: 0
+        totalFavorites:
+          type: integer
+          minimum: 0
+        averagePopularityScore:
           type: number
           format: float
     AdminDashboardSummary:

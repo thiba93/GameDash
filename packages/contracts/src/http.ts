@@ -243,8 +243,10 @@ export interface CreateMapVersionRequest {
 }
 
 export interface MapVersionResponse {
+  id: string;
   mapId: string;
   versionLabel: string;
+  releaseNotes: string;
   createdAt: string;
 }
 
@@ -256,15 +258,55 @@ export interface TestMapRequest {
   completed: boolean;
 }
 
+export interface FavoriteMapRequest {
+  favorited: boolean;
+}
+
 export interface ActionAcceptedResponse {
   accepted: boolean;
 }
 
+export interface MapStatsResponse {
+  mapId: string;
+  versionCount: number;
+  voteScore: number;
+  upvotes: number;
+  downvotes: number;
+  completedTests: number;
+  favorites: number;
+  popularityScore: number;
+}
+
 export interface MapSummary {
   id: string;
+  creatorId: string;
   title: string;
+  description: string;
+  tags: string[];
   status: MapStatus;
   popularityScore: number;
+  latestVersionLabel?: string;
+  createdAt: string;
+  updatedAt: string;
+  stats: MapStatsResponse;
+}
+
+export interface MapDetailResponse extends MapSummary {
+  versions: MapVersionResponse[];
+}
+
+export interface MapInteractionResponse extends ActionAcceptedResponse {
+  map: MapSummary;
+}
+
+export interface CreatorMapStatsResponse {
+  creatorId: string;
+  totalMaps: number;
+  publishedMaps: number;
+  totalVotes: number;
+  totalTests: number;
+  totalFavorites: number;
+  averagePopularityScore: number;
 }
 
 export interface AdminDashboardSummary {

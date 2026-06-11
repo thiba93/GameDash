@@ -83,6 +83,7 @@ model User {
   mapVotes       MapVote[]
   mapTests       MapTest[]
   mapFavorites   MapFavorite[]
+  mapReports     MapReport[]
   sanctions      Sanction[]
   auditLogs      AuditLog[]
 }
@@ -284,21 +285,28 @@ model InventoryItem {
 }
 
 model GameMap {
-  id              String               @id @default(uuid())
-  creatorId       String
-  title           String
-  description     String
-  tags            String[]
-  status          MapStatus            @default(DRAFT)
-  popularityScore Float                @default(0)
-  createdAt       DateTime             @default(now())
-  updatedAt       DateTime             @updatedAt
-  creator         User                 @relation(fields: [creatorId], references: [id], onDelete: Cascade)
-  versions        MapVersion[]
-  votes           MapVote[]
-  tests           MapTest[]
-  favorites       MapFavorite[]
+  id               String               @id @default(uuid())
+  creatorId        String
+  title            String
+  description      String
+  tags             String[]
+  status           MapStatus            @default(DRAFT)
+  popularityScore  Float                @default(0)
+  reviewStatus     String               @default("pending")
+  reportCount      Int                  @default(0)
+  lastModerationAt DateTime?
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+  creator          User                 @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  versions         MapVersion[]
+  votes            MapVote[]
+  tests            MapTest[]
+  favorites        MapFavorite[]
+  reports          MapReport[]
   moderationEvents MapModerationEvent[]
+
+  @@index([status, popularityScore])
+  @@index([creatorId, createdAt])
 }
 
 model MapVersion {
@@ -343,6 +351,20 @@ model MapFavorite {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([mapId, userId])
+}
+
+model MapReport {
+  id         String   @id @default(uuid())
+  mapId      String
+  reporterId String
+  reason     String
+  status     String   @default("open")
+  createdAt  DateTime @default(now())
+  map        GameMap  @relation(fields: [mapId], references: [id], onDelete: Cascade)
+  reporter   User     @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+
+  @@index([mapId, status])
+  @@index([status, createdAt])
 }
 
 model MapModerationEvent {

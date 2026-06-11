@@ -43,6 +43,13 @@ Phase 4 runtime requirement:
 - Purchase audit metadata must include store item id, item code, currency, quantity, amount, previous balance, next balance, and rejection reason when applicable.
 - Payment behavior is simulated for MVP and must not call or require real payment credentials.
 
+Phase 5 runtime requirement:
+- Map creation with a published status must write a `map.publish` audit entry.
+- Map version creation must write a `map.update` audit entry with version id and version label.
+- UGC search responses must hide `hidden` maps unless a status filter explicitly asks for them.
+- Popularity scoring must be derived from votes, completed tests, favorites, version count, and recency, not from user-controlled raw input.
+- Moderation-relevant map data must include status, review metadata, reports, and moderation events for later staff workflows.
+
 ## Secret and environment handling
 - Never commit real secrets.
 - Use `.env.example` as contract only.
