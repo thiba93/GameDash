@@ -17,7 +17,13 @@ GameDash is a unified platform for a competitive online game with community map 
 - Realtime baseline: WebSocket namespaces + polling fallback
 
 ## Current milestone
-Phase 0: project foundation and executable governance.
+Phase 8: final delivery package and live demo readiness.
+
+Start here for the final review:
+- `docs/final-delivery.md`
+- `docs/demo-guide.md`
+- `docs/technical-handbook.md`
+- `docs/business-viability-checklist.md`
 
 ## Repository layout
 - `apps/web`: player/studio frontend shell
@@ -48,6 +54,7 @@ corepack pnpm validate:contracts
 
 ## Governance entrypoints
 - Execution rules for agents: `AGENTS.md`
+- Final delivery package: `docs/final-delivery.md`
 - Product scope: `docs/mvp-scope.md`
 - Executable backlog: `docs/backlog-mvp.md`
 - Security baseline: `docs/security-baseline.md`

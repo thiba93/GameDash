@@ -48,6 +48,13 @@ Status: done
 - Tests: critical cross-service flow coverage and observability coverage.
 - Docs: hardening notes, permission/logging review, and performance baseline.
 
+## Slice 8 - Final delivery and defense
+Status: done
+- Docs: final delivery index, technical handbook, user guide, demo guide, defense runbook.
+- Docs: business viability checklist and production follow-up summary.
+- Validation: mandatory suite documented as the final Go/No-Go gate.
+- Demo: live sequence and fallback plan documented.
+
 ## Definition of done for every slice
 - OpenAPI updated.
 - Prisma schema updated.

@@ -40,3 +40,6 @@
 - Phase 7 health output is the primary runtime diagnostic surface until a production log sink is introduced.
 - Phase 7 keeps critical-flow integration coverage at service composition level while persistence remains in-memory.
 - Phase 7 adds a `RuntimeEvent` schema target for future durable observability without wiring database writes yet.
+- Phase 8 final delivery starts from `docs/final-delivery.md` and links technical, user, demo, runbook, and business viability material.
+- Phase 8 keeps the MVP runtime scope unchanged: demonstrable in-memory services with OpenAPI and Prisma as production contract baselines.
+- Phase 8 uses the mandatory validation suite as the final Go/No-Go criterion for the defense.

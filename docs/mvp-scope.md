@@ -46,6 +46,12 @@
 - Health output exposes runtime checks, request/error counts, uptime, and p95 duration.
 - Runtime observability has a Prisma persistence target through `RuntimeEvent`.
 
+### Final delivery and defense
+- Technical documentation covers API, database, security, setup, and production follow-up.
+- User guide explains player, staff, and admin journeys.
+- Demo guide and defense runbook define the live presentation path.
+- Business viability checklist covers product value, risks, and Go/No-Go criteria.
+
 ## Explicit non-goals (phase 0 foundation)
 - Full gameplay integration.
 - Real payment processing.
@@ -94,6 +100,10 @@
 ### Quality/security
 - Phase 7 baseline includes consistent error responses, request-id propagation, runtime health metrics, explicit forbidden responses, and critical integration coverage.
 - Baseline performance bottlenecks and production follow-ups are documented.
+
+### Delivery/soutenance
+- Phase 8 baseline includes `docs/final-delivery.md`, `docs/technical-handbook.md`, `docs/user-guide.md`, `docs/demo-guide.md`, `docs/soutenance-runbook.md`, and `docs/business-viability-checklist.md`.
+- Final demo readiness depends on the full mandatory validation suite being green.
 
 ### Cross-cutting
 - OpenAPI passes lint.
