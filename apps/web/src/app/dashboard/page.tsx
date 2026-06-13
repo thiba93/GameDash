@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import type {
@@ -35,17 +35,38 @@ export default function DashboardPage() {
   const [error, setError] = useState<string | null>(null);
   const [queueMode, setQueueMode] = useState<GameMode>("ranked");
   const [queueLoading, setQueueLoading] = useState(false);
+  const [countdown, setCountdown] = useState<number | null>(null);
+  const [matchResult, setMatchResult] = useState<MatchHistoryItem | null>(null);
+  const matchStartedAtRef = useRef<number | null>(null);
+  const userRef = useRef<AuthUserResponse | null>(null);
 
   const handleLogout = useCallback(async () => {
     await logout();
     router.replace("/login");
   }, [router]);
 
+  const refreshStats = useCallback(async (userId: string) => {
+    const [mmrData, progData, matchData] = await Promise.allSettled([
+      withToken((t) => players.getMmr(userId, t)),
+      withToken((t) => players.getProgression(userId, t)),
+      withToken((t) => players.getMatches(userId, t))
+    ]);
+    if (mmrData.status === "fulfilled") setMmr(mmrData.value);
+    if (progData.status === "fulfilled") setProgression(progData.value);
+    if (matchData.status === "fulfilled") {
+      const list = matchData.value;
+      setRecentMatches(list.slice(0, 5));
+      const latest = list[0];
+      if (latest?.finishedAt) setMatchResult(latest);
+    }
+  }, []);
+
   useEffect(() => {
     async function load() {
       try {
         const me = await withToken((t) => authApi.me(t));
         setUser(me);
+        userRef.current = me;
         const [mmrData, progData, qData, matchData] = await Promise.allSettled([
           withToken((t) => players.getMmr(me.id, t)),
           withToken((t) => players.getProgression(me.id, t)),
@@ -67,8 +88,41 @@ export default function DashboardPage() {
     load();
   }, [router]);
 
+  // Countdown tick while in_match
+  useEffect(() => {
+    if (queueStatus?.state !== "in_match") {
+      setCountdown(null);
+      matchStartedAtRef.current = null;
+      return;
+    }
+    if (!matchStartedAtRef.current) {
+      matchStartedAtRef.current = Date.now();
+    }
+    const tick = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - matchStartedAtRef.current!) / 1000);
+      setCountdown(Math.max(0, 15 - elapsed));
+    }, 250);
+    return () => clearInterval(tick);
+  }, [queueStatus?.state]);
+
+  // Poll queue status while in_match; refresh stats on match end
+  useEffect(() => {
+    if (queueStatus?.state !== "in_match") return;
+    const poll = setInterval(async () => {
+      try {
+        const s = await withToken((t) => matchmaking.getStatus(t));
+        setQueueStatus(s);
+        if (s.state !== "in_match" && userRef.current) {
+          await refreshStats(userRef.current.id);
+        }
+      } catch { /* ignore */ }
+    }, 2000);
+    return () => clearInterval(poll);
+  }, [queueStatus?.state, refreshStats]);
+
   async function handleJoinQueue() {
     setQueueLoading(true);
+    setMatchResult(null);
     try {
       const s = await withToken((t) => matchmaking.joinQueue({ mode: queueMode }, t));
       setQueueStatus(s);
@@ -109,6 +163,41 @@ export default function DashboardPage() {
       <main className="page">
         {error && <div className="error-banner" role="alert">{error}</div>}
 
+        {/* Match result banner */}
+        {matchResult && queueStatus?.state !== "in_match" && (
+          <div
+            role="alert"
+            style={{
+              padding: "1rem 1.5rem",
+              borderRadius: "0.5rem",
+              marginBottom: "1rem",
+              display: "flex",
+              alignItems: "center",
+              gap: "1rem",
+              cursor: "pointer",
+              background: matchResult.result === "win" ? "rgba(34,197,94,0.15)" : "rgba(239,68,68,0.15)",
+              border: `1px solid ${matchResult.result === "win" ? "var(--green, #22c55e)" : "var(--red, #ef4444)"}`
+            }}
+            onClick={() => setMatchResult(null)}
+          >
+            <span style={{ fontSize: "1.5rem", fontWeight: 700, color: matchResult.result === "win" ? "var(--green, #22c55e)" : "var(--red, #ef4444)" }}>
+              {matchResult.result?.toUpperCase() ?? "DRAW"}
+            </span>
+            {matchResult.mmrDelta !== undefined && (
+              <span style={{ color: matchResult.mmrDelta >= 0 ? "var(--green, #22c55e)" : "var(--red, #ef4444)", fontWeight: 600 }}>
+                MMR {matchResult.mmrDelta >= 0 ? "+" : ""}{matchResult.mmrDelta}
+              </span>
+            )}
+            {matchResult.xpAwarded !== undefined && (
+              <span style={{ color: "var(--cyan)", fontWeight: 600 }}>+{matchResult.xpAwarded} XP</span>
+            )}
+            {matchResult.durationSeconds !== undefined && (
+              <span style={{ color: "var(--text-muted, #888)", fontSize: "0.85rem" }}>{matchResult.durationSeconds}s</span>
+            )}
+            <span style={{ marginLeft: "auto", opacity: 0.5, fontSize: "0.75rem" }}>click to dismiss</span>
+          </div>
+        )}
+
         {/* Hero */}
         {user && (
           <section aria-label="Player overview">
@@ -144,6 +233,12 @@ export default function DashboardPage() {
                   <span className="hero-stat-value">{progression?.level ?? "—"}</span>
                   <span className="hero-stat-label">Level</span>
                 </div>
+                {rankedRating && (
+                  <div>
+                    <span className="hero-stat-value">{rankedRating.winRate}%</span>
+                    <span className="hero-stat-label">Win rate</span>
+                  </div>
+                )}
               </div>
             </div>
           </section>
@@ -182,16 +277,34 @@ export default function DashboardPage() {
                 {queueStatus && <span className="tag tag-cyan">{queueStatus.state.replace("_", " ")}</span>}
               </div>
 
-              {queueStatus && queueStatus.state !== "online" && (
+              {queueStatus?.state === "in_match" && countdown !== null && (
+                <div style={{
+                  textAlign: "center",
+                  padding: "1.25rem 0",
+                  borderRadius: "0.5rem",
+                  background: "rgba(0,200,255,0.08)",
+                  border: "1px solid var(--cyan)",
+                  marginBottom: "0.75rem"
+                }}>
+                  <div style={{ fontSize: "0.75rem", color: "var(--text-muted, #888)", marginBottom: "0.25rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>Match in progress</div>
+                  <div style={{ fontFamily: "Rajdhani, sans-serif", fontSize: "2.5rem", fontWeight: 700, color: "var(--cyan)", lineHeight: 1 }}>
+                    {countdown}s
+                  </div>
+                  {queueStatus.opponentPlayerId && (
+                    <div style={{ fontSize: "0.8rem", color: "var(--text-muted, #888)", marginTop: "0.25rem" }}>
+                      vs {queueStatus.opponentPlayerId.slice(0, 8)}…
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {queueStatus && queueStatus.state === "in_queue" && (
                 <div className="queue-status">
                   <span className="queue-indicator" />
                   <div className="queue-text">
-                    <div className="queue-state">{queueStatus.state.replace("_", " ")}</div>
+                    <div className="queue-state">searching…</div>
                     {queueStatus.matchId && (
                       <div className="queue-detail">Match {queueStatus.matchId.slice(0, 8)}…</div>
-                    )}
-                    {queueStatus.opponentPlayerId && (
-                      <div className="queue-detail">vs {queueStatus.opponentPlayerId}</div>
                     )}
                   </div>
                 </div>
@@ -236,10 +349,16 @@ export default function DashboardPage() {
                   <div key={match.matchId} className={`match-item ${match.result ?? ""}`}>
                     <span className={`match-result ${match.result ?? ""}`}>{match.result ?? "?"}</span>
                     <span className="match-mode">{match.mode}</span>
+                    {match.durationSeconds !== undefined && (
+                      <span style={{ fontSize: "0.75rem", color: "var(--text-muted, #888)" }}>{match.durationSeconds}s</span>
+                    )}
                     {match.mmrDelta !== undefined && (
                       <span className={`match-delta ${match.mmrDelta >= 0 ? "positive" : "negative"}`}>
-                        {match.mmrDelta >= 0 ? "+" : ""}{match.mmrDelta}
+                        {match.mmrDelta >= 0 ? "+" : ""}{match.mmrDelta} MMR
                       </span>
+                    )}
+                    {match.xpAwarded !== undefined && (
+                      <span className="match-delta positive">+{match.xpAwarded} XP</span>
                     )}
                   </div>
                 ))}
@@ -261,6 +380,11 @@ export default function DashboardPage() {
                   </div>
                   <div style={{ fontFamily: "Rajdhani, sans-serif", fontSize: "2rem", fontWeight: 700, color: "var(--cyan)" }}>
                     {r.mmr}
+                  </div>
+                  <div style={{ fontSize: "0.8rem", color: "var(--text-muted, #888)", display: "flex", gap: "0.75rem" }}>
+                    <span style={{ color: "var(--green, #22c55e)" }}>{r.wins}W</span>
+                    <span style={{ color: "var(--red, #ef4444)" }}>{r.losses}L</span>
+                    <span>{r.winRate}% WR</span>
                   </div>
                 </div>
               ))}

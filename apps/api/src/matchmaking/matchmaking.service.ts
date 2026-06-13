@@ -50,12 +50,14 @@ const MMR_DELTAS: Record<GameMode, { win: number; loss: number }> = {
 };
 
 const PLACEMENT_MMR = 1000;
+const MATCH_TIMEOUT_MS = 15_000;
 
 @Injectable()
 export class MatchmakingService {
   /** In-memory queue — intentionally ephemeral (real-time matching). */
   private readonly queues = new Map<GameMode, QueueEntry[]>();
   private readonly statuses = new Map<string, PlayerStatus>();
+  private readonly matchTimers = new Map<string, NodeJS.Timeout>();
 
   constructor(
     @Inject(PrismaService) private readonly prisma: PrismaService,
@@ -90,6 +92,12 @@ export class MatchmakingService {
       const inMatch: PlayerStatus = { state: "in_match", mode, matchId };
       this.statuses.set(actor.id, { ...inMatch, opponentPlayerId: opponent.playerId });
       this.statuses.set(opponent.playerId, { ...inMatch, opponentPlayerId: actor.id });
+
+      const timer = setTimeout(
+        () => this.expireMatch(matchId, [actor.id, opponent.playerId], mode),
+        MATCH_TIMEOUT_MS
+      );
+      this.matchTimers.set(matchId, timer);
 
       return this.toQueueStatus(actor.id, this.statuses.get(actor.id)!);
     }
@@ -128,6 +136,9 @@ export class MatchmakingService {
     if (!match) throw new NotFoundException("Match not found.");
     if (match.finishedAt) throw new BadRequestException("Match result was already submitted.");
 
+    const timer = this.matchTimers.get(matchId);
+    if (timer) { clearTimeout(timer); this.matchTimers.delete(matchId); }
+
     const participantIds = match.participants.map((p) => p.userId);
     if (!participantIds.includes(actor.id)) {
       throw new BadRequestException("Only match participants can submit a result.");
@@ -137,72 +148,31 @@ export class MatchmakingService {
     }
 
     const mode = match.mode.toLowerCase() as GameMode;
-    const finishedAt = new Date().toISOString();
-
-    const participants = await Promise.all(
-      participantIds.map(async (playerId) => {
-        const outcome: MatchOutcome = playerId === body.winnerPlayerId ? "win" : "loss";
-        const mmrBefore = await this.getMmr(playerId, mode);
-        const delta = MMR_DELTAS[mode][outcome];
-        const mmrAfter = Math.max(0, mmrBefore + delta);
-        const rankBefore = this.resolveRank(mode, mmrBefore);
-        const rankAfter = this.resolveRank(mode, mmrAfter);
-
-        await this.setMmr(playerId, mode, mmrAfter);
-        await this.prisma.matchParticipant.update({
-          where: { matchId_userId: { matchId, userId: playerId } },
-          data: {
-            outcome: outcome.toUpperCase() as "WIN" | "LOSS" | "DRAW",
-            mmrBefore,
-            mmrAfter
-          }
-        });
-
-        this.statuses.set(playerId, { state: "online" });
-
-        const progression = await this.progressionService.awardMatchXp({
-          playerId,
-          mode,
-          outcome,
-          matchId,
-          occurredAt: finishedAt,
-          actorId: actor.id
-        });
-
-        await this.prisma.auditLog.create({
-          data: {
-            actorId: actor.id,
-            action: "mmr.update",
-            targetType: "player_mmr",
-            targetId: playerId,
-            metadata: { matchId, mode, mmrBefore, mmrAfter, mmrDelta: delta, rankBefore, rankAfter } as never
-          }
-        });
-
-        return { playerId, outcome, mmrBefore, mmrAfter, mmrDelta: delta, rankBefore, rankAfter, progression };
-      })
-    );
-
-    await this.prisma.match.update({
-      where: { id: matchId },
-      data: {
-        finishedAt: new Date(finishedAt),
-        winnerUserId: body.winnerPlayerId,
-        resultNotes: body.notes,
-        resultSubmittedById: actor.id
-      }
-    });
-
-    return { accepted: true, mmrUpdated: true, matchId, mode, participants };
+    return this.finalizeMatch(matchId, body.winnerPlayerId, participantIds, mode, actor.id, body.notes);
   }
 
   async getPlayerMmr(playerId: string): Promise<PlayerMmrResponse> {
+    const participations = await this.prisma.matchParticipant.findMany({
+      where: { userId: playerId, outcome: { not: null } },
+      include: { match: { select: { mode: true, finishedAt: true } } }
+    });
+
     const ratings = await Promise.all(
       GAME_MODES.map(async (mode) => {
         const mmr = await this.getMmr(playerId, mode);
-        return { mode, mmr, rank: this.resolveRank(mode, mmr) };
+        const rank = this.resolveRank(mode, mmr);
+        const modeKey = mode.toUpperCase() as "RANKED" | "UNRANKED" | "FUN";
+        const modeMatches = participations.filter(
+          (p) => p.match.mode === modeKey && p.match.finishedAt
+        );
+        const wins = modeMatches.filter((p) => p.outcome === "WIN").length;
+        const losses = modeMatches.filter((p) => p.outcome === "LOSS").length;
+        const total = wins + losses;
+        const winRate = total > 0 ? Math.round((wins / total) * 100) : 0;
+        return { mode, mmr, rank, wins, losses, winRate };
       })
     );
+
     return { playerId, ratings };
   }
 
@@ -219,6 +189,9 @@ export class MatchmakingService {
       const delta = entry.mmrAfter != null && entry.mmrBefore != null
         ? entry.mmrAfter - entry.mmrBefore
         : undefined;
+      const durationSeconds = entry.match.finishedAt
+        ? Math.round((entry.match.finishedAt.getTime() - entry.match.startedAt.getTime()) / 1000)
+        : undefined;
 
       return {
         matchId: entry.matchId,
@@ -231,7 +204,10 @@ export class MatchmakingService {
         mmrAfter: entry.mmrAfter ?? undefined,
         mmrDelta: delta,
         rankBefore: delta !== undefined ? this.resolveRank(entry.match.mode.toLowerCase() as GameMode, entry.mmrBefore ?? 0) : undefined,
-        rankAfter: delta !== undefined ? this.resolveRank(entry.match.mode.toLowerCase() as GameMode, entry.mmrAfter ?? 0) : undefined
+        rankAfter: delta !== undefined ? this.resolveRank(entry.match.mode.toLowerCase() as GameMode, entry.mmrAfter ?? 0) : undefined,
+        xpAwarded: entry.xpAwarded ?? undefined,
+        durationSeconds,
+        winnerPlayerId: entry.match.winnerUserId ?? undefined
       };
     });
   }
@@ -241,6 +217,85 @@ export class MatchmakingService {
   }
 
   // ─── Private helpers ──────────────────────────────────────────────────────
+
+  private async finalizeMatch(
+    matchId: string,
+    winnerPlayerId: string,
+    participantIds: string[],
+    mode: GameMode,
+    actorId: string,
+    resultNotes?: string
+  ): Promise<MatchResultResponse> {
+    const finishedAt = new Date();
+    const finishedAtStr = finishedAt.toISOString();
+
+    const participants = await Promise.all(
+      participantIds.map(async (playerId) => {
+        const outcome: MatchOutcome = playerId === winnerPlayerId ? "win" : "loss";
+        const mmrBefore = await this.getMmr(playerId, mode);
+        const delta = MMR_DELTAS[mode][outcome];
+        const mmrAfter = Math.max(0, mmrBefore + delta);
+        const rankBefore = this.resolveRank(mode, mmrBefore);
+        const rankAfter = this.resolveRank(mode, mmrAfter);
+
+        await this.setMmr(playerId, mode, mmrAfter);
+
+        const progression = await this.progressionService.awardMatchXp({
+          playerId,
+          mode,
+          outcome,
+          matchId,
+          occurredAt: finishedAtStr,
+          actorId
+        });
+
+        await this.prisma.matchParticipant.update({
+          where: { matchId_userId: { matchId, userId: playerId } },
+          data: {
+            outcome: outcome.toUpperCase() as "WIN" | "LOSS" | "DRAW",
+            mmrBefore,
+            mmrAfter,
+            xpAwarded: progression.xpAwarded
+          }
+        });
+
+        this.statuses.set(playerId, { state: "online" });
+
+        await this.prisma.auditLog.create({
+          data: {
+            actorId,
+            action: "mmr.update",
+            targetType: "player_mmr",
+            targetId: playerId,
+            metadata: { matchId, mode, mmrBefore, mmrAfter, mmrDelta: delta, rankBefore, rankAfter } as never
+          }
+        });
+
+        return { playerId, outcome, mmrBefore, mmrAfter, mmrDelta: delta, rankBefore, rankAfter, progression };
+      })
+    );
+
+    await this.prisma.match.update({
+      where: { id: matchId },
+      data: {
+        finishedAt,
+        winnerUserId: winnerPlayerId,
+        resultSubmittedById: actorId,
+        ...(resultNotes ? { resultNotes } : {})
+      }
+    });
+
+    return { accepted: true, mmrUpdated: true, matchId, mode, participants };
+  }
+
+  private async expireMatch(matchId: string, playerIds: string[], mode: GameMode): Promise<void> {
+    this.matchTimers.delete(matchId);
+    const match = await this.prisma.match.findUnique({ where: { id: matchId } });
+    if (!match || match.finishedAt) return;
+
+    const winnerPlayerId = playerIds[Math.floor(Math.random() * playerIds.length)];
+    await this.finalizeMatch(matchId, winnerPlayerId, playerIds, mode, playerIds[0], "timeout");
+  }
 
   private async getMmr(playerId: string, mode: GameMode): Promise<number> {
     const record = await this.prisma.playerMmr.upsert({
@@ -277,8 +332,8 @@ export class MatchmakingService {
   }
 
   private removeFromQueues(playerId: string): void {
-    for (const [mode, queue] of this.queues) {
-      this.queues.set(mode, queue.filter((e) => e.playerId !== playerId));
+    for (const [key, queue] of this.queues) {
+      this.queues.set(key, queue.filter((e) => e.playerId !== playerId));
     }
   }
 

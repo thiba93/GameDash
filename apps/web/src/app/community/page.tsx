@@ -163,6 +163,7 @@ interface MapCardProps {
 
 function MapCard({ map, userId, onUpdate, onOpenDetail }: MapCardProps) {
   const [busy, setBusy] = useState(false);
+  const [isFav, setIsFav] = useState(false);
 
   async function handleVote(value: 1 | -1) {
     setBusy(true);
@@ -184,7 +185,9 @@ function MapCard({ map, userId, onUpdate, onOpenDetail }: MapCardProps) {
   async function handleFavorite() {
     setBusy(true);
     try {
-      const res = await withToken((t) => maps.favorite(map.id, { favorited: true }, t));
+      const newFav = !isFav;
+      const res = await withToken((t) => maps.favorite(map.id, { favorited: newFav }, t));
+      setIsFav(newFav);
       onUpdate(res.map);
     } catch { /* ignore */ } finally { setBusy(false); }
   }
@@ -231,7 +234,7 @@ function MapCard({ map, userId, onUpdate, onOpenDetail }: MapCardProps) {
         <div className="map-actions">
           <button className="vote-btn up" disabled={busy} onClick={() => handleVote(1)}>👍 {map.stats.upvotes}</button>
           <button className="vote-btn down" disabled={busy} onClick={() => handleVote(-1)}>👎</button>
-          <button className="vote-btn fav" disabled={busy} onClick={handleFavorite}>⭐ {map.stats.favorites}</button>
+          <button className={`vote-btn fav${isFav ? " active" : ""}`} disabled={busy} onClick={handleFavorite}>{isFav ? "★" : "⭐"} {map.stats.favorites}</button>
           <button className="vote-btn" disabled={busy} onClick={handleTest}>🎮 Test</button>
         </div>
         <button

@@ -149,6 +149,9 @@ export interface PlayerMmrRating {
   mode: GameMode;
   mmr: number;
   rank: string;
+  wins: number;
+  losses: number;
+  winRate: number;
 }
 
 export interface PlayerMmrResponse {
@@ -168,6 +171,9 @@ export interface MatchHistoryItem {
   mmrDelta?: number;
   rankBefore?: string;
   rankAfter?: string;
+  xpAwarded?: number;
+  durationSeconds?: number;
+  winnerPlayerId?: string;
 }
 
 export interface RankConfig {
