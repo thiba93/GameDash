@@ -1,8 +1,10 @@
-import { BadRequestException, Inject, Injectable } from "@nestjs/common";
+import { BadRequestException, Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { randomUUID } from "crypto";
 import type {
   AccountModerationRequest,
   AdminDashboardSummary,
+  AdminPlayerResponse,
+  AdminUpdatePlayerRequest,
   MapModerationRequest,
   ModerationActionResponse,
   ModerationSignalResponse,
@@ -181,6 +183,45 @@ export class AdminService {
     }));
   }
 
+  async listPlayers(): Promise<AdminPlayerResponse[]> {
+    const users = await this.prisma.user.findMany({
+      include: { profile: true },
+      orderBy: { createdAt: "desc" }
+    });
+    return users.map((u) => this.toPlayerResponse(u));
+  }
+
+  async updatePlayer(userId: string, body: AdminUpdatePlayerRequest): Promise<AdminPlayerResponse> {
+    const existing = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!existing) throw new NotFoundException("Player not found.");
+
+    if (body.role || body.email) {
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: {
+          ...(body.email ? { email: body.email } : {}),
+          ...(body.role ? { role: body.role.toUpperCase() as "PLAYER" | "STAFF" | "ADMIN" } : {})
+        }
+      });
+    }
+
+    const hasProfileUpdate = body.pseudo !== undefined || body.region !== undefined || body.bio !== undefined;
+    if (hasProfileUpdate) {
+      await this.prisma.playerProfile.upsert({
+        where: { userId },
+        create: { userId, pseudo: body.pseudo ?? "" },
+        update: {
+          ...(body.pseudo !== undefined ? { pseudo: body.pseudo } : {}),
+          ...(body.region !== undefined ? { region: body.region } : {}),
+          ...(body.bio !== undefined ? { bio: body.bio } : {})
+        }
+      });
+    }
+
+    const updated = await this.prisma.user.findUnique({ where: { id: userId }, include: { profile: true } });
+    return this.toPlayerResponse(updated!);
+  }
+
   async getModerationSignals(): Promise<ModerationSignalResponse[]> {
     const signals = await this.prisma.moderationSignal.findMany({ orderBy: { createdAt: "desc" } });
     return signals.map((s) => ({
@@ -195,6 +236,18 @@ export class AdminService {
   }
 
   // ─── Private helpers ──────────────────────────────────────────────────────
+
+  private toPlayerResponse(user: { id: string; email: string; role: string; createdAt: Date; profile: { pseudo: string; region: string | null; bio: string | null } | null }): AdminPlayerResponse {
+    return {
+      id: user.id,
+      email: user.email,
+      role: user.role.toLowerCase() as "player" | "staff" | "admin",
+      pseudo: user.profile?.pseudo ?? undefined,
+      region: user.profile?.region ?? undefined,
+      bio: user.profile?.bio ?? undefined,
+      createdAt: user.createdAt.toISOString()
+    };
+  }
 
   private async loadSettings(): Promise<StudioSettingsResponse> {
     const rows = await this.prisma.studioSetting.findMany({ where: { key: { in: ["matchmaking", "mmr", "economy", "__meta"] } } });

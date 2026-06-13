@@ -2,6 +2,8 @@ import { Body, Controller, Get, Inject, Param, Patch, Post, UseGuards } from "@n
 import type {
   AccountModerationRequest,
   AdminDashboardSummary,
+  AdminPlayerResponse,
+  AdminUpdatePlayerRequest,
   MapModerationRequest,
   ModerationActionResponse,
   ModerationSignalResponse,
@@ -42,6 +44,21 @@ export class AdminController {
     @Body() body: UpdateStudioSettingsRequest
   ): Promise<StudioSettingsResponse> {
     return this.adminService.updateSettings(user, body);
+  }
+
+  @Get("players")
+  @Roles("staff", "admin")
+  listPlayers(): Promise<AdminPlayerResponse[]> {
+    return this.adminService.listPlayers();
+  }
+
+  @Patch("players/:userId")
+  @Roles("admin")
+  updatePlayer(
+    @Param("userId") userId: string,
+    @Body() body: AdminUpdatePlayerRequest
+  ): Promise<AdminPlayerResponse> {
+    return this.adminService.updatePlayer(userId, body);
   }
 
   @Get("moderation/signals")

@@ -38,7 +38,9 @@ import type {
   LevelReward,
   ProgressionRulesResponse,
   PlayerProfileResponse,
-  UpdateStudioSettingsRequest
+  UpdateStudioSettingsRequest,
+  AdminPlayerResponse,
+  AdminUpdatePlayerRequest
 } from "@gamedash/contracts";
 
 const BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api/v1";
@@ -222,5 +224,11 @@ export const admin = {
     request<ModerationActionResponse>(`/admin/moderation/accounts/${userId}/actions`, { method: "POST", body: JSON.stringify(data), token }),
 
   moderateMap: (mapId: string, data: { action: string; reason: string }, token: string) =>
-    request<ModerationActionResponse>(`/admin/moderation/maps/${mapId}/actions`, { method: "POST", body: JSON.stringify(data), token })
+    request<ModerationActionResponse>(`/admin/moderation/maps/${mapId}/actions`, { method: "POST", body: JSON.stringify(data), token }),
+
+  listPlayers: (token: string) =>
+    request<AdminPlayerResponse[]>("/admin/players", { token }),
+
+  updatePlayer: (userId: string, data: AdminUpdatePlayerRequest, token: string) =>
+    request<AdminPlayerResponse>(`/admin/players/${userId}`, { method: "PATCH", body: JSON.stringify(data), token })
 };

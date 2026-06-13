@@ -1,5 +1,4 @@
 import { BadRequestException, Inject, Injectable, NotFoundException } from "@nestjs/common";
-import { randomUUID } from "crypto";
 import type {
   CurrencyType,
   InventoryItemResponse,
@@ -101,7 +100,6 @@ export class EconomyService {
       const tx = await this.prisma.transaction.create({
         data: {
           userId: actor.id,
-          storeItemId: item.id,
           itemCode: item.itemCode,
           currencyType: item.currencyType.toUpperCase() as "SOFT" | "HARD",
           unitPrice: item.price,
@@ -136,7 +134,6 @@ export class EconomyService {
       this.prisma.transaction.create({
         data: {
           userId: actor.id,
-          storeItemId: item.id,
           itemCode: item.itemCode,
           currencyType: item.currencyType.toUpperCase() as "SOFT" | "HARD",
           unitPrice: item.price,

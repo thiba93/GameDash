@@ -76,7 +76,7 @@ export default function StorePage() {
     setError(null);
     try {
       await withToken((t) =>
-        economy.purchase({ itemCode: item.itemCode, currencyType: item.currencyType }, t)
+        economy.purchase({ storeItemId: item.id, quantity: 1 }, t)
       );
       const [w, inv, tx] = await Promise.all([
         withToken((t) => economy.getWallet(t)),

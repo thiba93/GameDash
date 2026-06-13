@@ -437,3 +437,21 @@ export interface ModerationSignalResponse {
   source: string;
   createdAt: string;
 }
+
+export interface AdminPlayerResponse {
+  id: string;
+  email: string;
+  role: "player" | "staff" | "admin";
+  pseudo?: string;
+  region?: string;
+  bio?: string;
+  createdAt: string;
+}
+
+export interface AdminUpdatePlayerRequest {
+  role?: "player" | "staff" | "admin";
+  email?: string;
+  pseudo?: string;
+  region?: string;
+  bio?: string;
+}

@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import type {
   AuthUserResponse,
   AdminDashboardSummary,
+  AdminPlayerResponse,
+  AdminUpdatePlayerRequest,
   StudioSettingsResponse,
   ModerationSignalResponse,
   ModerationActionResponse
@@ -21,7 +23,14 @@ export default function AdminPage() {
   const [signals, setSignals] = useState<ModerationSignalResponse[]>([]);
   const [modHistory, setModHistory] = useState<ModerationActionResponse[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<"overview" | "settings" | "moderation">("overview");
+  const [tab, setTab] = useState<"overview" | "settings" | "moderation" | "players">("overview");
+  const [players, setPlayers] = useState<AdminPlayerResponse[]>([]);
+  const [playersLoading, setPlayersLoading] = useState(false);
+  const [editingPlayer, setEditingPlayer] = useState<AdminPlayerResponse | null>(null);
+  const [editForm, setEditForm] = useState<AdminUpdatePlayerRequest>({});
+  const [playerBusy, setPlayerBusy] = useState(false);
+  const [playerError, setPlayerError] = useState<string | null>(null);
+  const [playerNotice, setPlayerNotice] = useState<string | null>(null);
 
   // Moderation form
   const [modTargetId, setModTargetId] = useState("");
@@ -84,6 +93,41 @@ export default function AdminPage() {
     }
     load();
   }, [router]);
+
+  async function handleLoadPlayers() {
+    setPlayersLoading(true);
+    try {
+      const list = await withToken((t) => admin.listPlayers(t));
+      setPlayers(list);
+    } catch { /* ignore */ } finally {
+      setPlayersLoading(false);
+    }
+  }
+
+  function openEdit(p: AdminPlayerResponse) {
+    setEditingPlayer(p);
+    setEditForm({ role: p.role, email: p.email, pseudo: p.pseudo ?? "", region: p.region ?? "", bio: p.bio ?? "" });
+    setPlayerError(null);
+    setPlayerNotice(null);
+  }
+
+  async function handleSavePlayer(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editingPlayer) return;
+    setPlayerBusy(true);
+    setPlayerError(null);
+    try {
+      const updated = await withToken((t) => admin.updatePlayer(editingPlayer.id, editForm, t));
+      setPlayers((prev) => prev.map((p) => p.id === updated.id ? updated : p));
+      setEditingPlayer(updated);
+      setPlayerNotice("Saved.");
+      setTimeout(() => setPlayerNotice(null), 2500);
+    } catch (err) {
+      setPlayerError(err instanceof Error ? err.message : "Save failed");
+    } finally {
+      setPlayerBusy(false);
+    }
+  }
 
   async function handleModerate(e: React.FormEvent) {
     e.preventDefault();
@@ -163,6 +207,7 @@ export default function AdminPage() {
                 </span>
               )}
             </button>
+            <button className={`tab-btn${tab === "players" ? " active" : ""}`} onClick={() => { setTab("players"); if (players.length === 0) handleLoadPlayers(); }}>Players</button>
           </div>
 
           {/* Overview tab */}
@@ -347,6 +392,103 @@ export default function AdminPage() {
                     ))}
                   </div>
                 </div>
+              </div>
+            </div>
+          )}
+          {/* Players tab */}
+          {tab === "players" && (
+            <div className="grid-2" style={{ alignItems: "start", gap: "1.5rem" }}>
+              {/* Player list */}
+              <div className="card" style={{ overflowX: "auto" }}>
+                <div className="card-header">
+                  <span className="card-title">Players</span>
+                  <button className="btn btn-sm" onClick={handleLoadPlayers} disabled={playersLoading}>
+                    {playersLoading ? "…" : "Refresh"}
+                  </button>
+                </div>
+                {players.length === 0 && !playersLoading && (
+                  <div style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>No players loaded.</div>
+                )}
+                <div style={{ display: "grid", gap: "0.5rem" }}>
+                  {players.map((p) => (
+                    <div
+                      key={p.id}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "0.75rem",
+                        padding: "0.5rem 0.75rem",
+                        borderRadius: "0.375rem",
+                        background: editingPlayer?.id === p.id ? "rgba(0,200,255,0.08)" : "transparent",
+                        border: editingPlayer?.id === p.id ? "1px solid var(--cyan)" : "1px solid transparent",
+                        cursor: "pointer",
+                        fontSize: "0.82rem"
+                      }}
+                      onClick={() => openEdit(p)}
+                    >
+                      <span style={{ fontFamily: "monospace", color: "var(--text-muted)", fontSize: "0.7rem", flexShrink: 0 }}>{p.id.slice(0, 8)}…</span>
+                      <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.pseudo ?? p.email}</span>
+                      <span style={{ color: "var(--text-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 160 }}>{p.email}</span>
+                      <span className={`tag ${p.role === "admin" ? "tag-red" : p.role === "staff" ? "tag-gold" : "tag-cyan"}`} style={{ flexShrink: 0 }}>{p.role}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Edit form */}
+              <div className="card">
+                <div className="card-header">
+                  <span className="card-title">{editingPlayer ? `Edit — ${editingPlayer.pseudo ?? editingPlayer.email}` : "Select a player"}</span>
+                </div>
+                {!editingPlayer && (
+                  <div style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>Click a player on the left to edit.</div>
+                )}
+                {editingPlayer && (
+                  <>
+                    {playerNotice && <div className="success-banner" style={{ marginBottom: "0.75rem" }}>{playerNotice}</div>}
+                    {playerError && <div className="error-banner" style={{ marginBottom: "0.75rem" }}>{playerError}</div>}
+                    <form className="auth-form" onSubmit={handleSavePlayer}>
+                      <div className="form-group">
+                        <label className="form-label">Email</label>
+                        <input className="form-input" value={editForm.email ?? ""} onChange={(e) => setEditForm((f) => ({ ...f, email: e.target.value }))} />
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">Role</label>
+                        <select
+                          className="form-input"
+                          value={editForm.role ?? "player"}
+                          onChange={(e) => setEditForm((f) => ({ ...f, role: e.target.value as "player" | "staff" | "admin" }))}
+                          disabled={user?.role !== "admin"}
+                        >
+                          <option value="player">Player</option>
+                          <option value="staff">Staff</option>
+                          <option value="admin">Admin</option>
+                        </select>
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">Pseudo</label>
+                        <input className="form-input" value={editForm.pseudo ?? ""} onChange={(e) => setEditForm((f) => ({ ...f, pseudo: e.target.value }))} placeholder="Display name" />
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">Region</label>
+                        <input className="form-input" value={editForm.region ?? ""} onChange={(e) => setEditForm((f) => ({ ...f, region: e.target.value }))} placeholder="EU, NA…" />
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">Bio</label>
+                        <textarea className="form-input" value={editForm.bio ?? ""} onChange={(e) => setEditForm((f) => ({ ...f, bio: e.target.value }))} rows={2} style={{ resize: "vertical" }} />
+                      </div>
+                      <div style={{ display: "flex", gap: "0.5rem" }}>
+                        <button className="btn btn-primary" style={{ flex: 1 }} type="submit" disabled={playerBusy || user?.role !== "admin"}>
+                          {playerBusy ? "Saving…" : "Save"}
+                        </button>
+                        <button className="btn" type="button" onClick={() => setEditingPlayer(null)}>Cancel</button>
+                      </div>
+                      {user?.role !== "admin" && (
+                        <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "0.25rem" }}>Read-only — only admins can edit players.</div>
+                      )}
+                    </form>
+                  </>
+                )}
               </div>
             </div>
           )}
