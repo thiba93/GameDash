@@ -53,10 +53,28 @@ const LEVEL_REWARDS: LevelReward[] = [
 
 @Injectable()
 export class ProgressionService {
+  private baseXpByMode: Record<GameMode, number> = { ...BASE_XP_BY_MODE };
+  private outcomeXp: Record<MatchOutcome, number> = { ...OUTCOME_XP };
+
   constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
+  async reloadRewardSettings(): Promise<void> {
+    const row = await this.prisma.studioSetting.findUnique({ where: { key: "rewards" } });
+    if (!row?.value) return;
+    const v = row.value as {
+      rankedBaseXp?: number; unrankedBaseXp?: number; funBaseXp?: number;
+      winBonusXp?: number; drawBonusXp?: number; lossXp?: number;
+    };
+    if (v.rankedBaseXp !== undefined) this.baseXpByMode.ranked = v.rankedBaseXp;
+    if (v.unrankedBaseXp !== undefined) this.baseXpByMode.unranked = v.unrankedBaseXp;
+    if (v.funBaseXp !== undefined) this.baseXpByMode.fun = v.funBaseXp;
+    if (v.winBonusXp !== undefined) this.outcomeXp.win = v.winBonusXp;
+    if (v.drawBonusXp !== undefined) this.outcomeXp.draw = v.drawBonusXp;
+    if (v.lossXp !== undefined) this.outcomeXp.loss = v.lossXp;
+  }
+
   async awardMatchXp(input: AwardMatchXpInput): Promise<MatchProgressionResult> {
-    const xpAwarded = BASE_XP_BY_MODE[input.mode] + OUTCOME_XP[input.outcome];
+    const xpAwarded = this.baseXpByMode[input.mode] + this.outcomeXp[input.outcome];
 
     const state = await this.prisma.accountProgression.upsert({
       where: { userId: input.playerId },
@@ -139,8 +157,8 @@ export class ProgressionService {
 
   getProgressionRules(): ProgressionRulesResponse {
     return {
-      baseXpByMode: { ...BASE_XP_BY_MODE },
-      outcomeXp: { ...OUTCOME_XP },
+      baseXpByMode: { ...this.baseXpByMode },
+      outcomeXp: { ...this.outcomeXp },
       levelThresholds: [...LEVEL_THRESHOLDS]
     };
   }

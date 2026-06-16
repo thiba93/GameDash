@@ -7,6 +7,7 @@ import type {
   AdminDashboardSummary,
   AdminMatchDetail,
   AdminPlayerResponse,
+  AdminQueueSnapshot,
   AdminRankConfigItem,
   AdminSanctionEntry,
   AdminTransactionJournalEntry,
@@ -106,6 +107,14 @@ export class AdminController {
     @Body() body: MapModerationRequest
   ): Promise<ModerationActionResponse> {
     return this.adminService.moderateMap(user, mapId, body);
+  }
+
+  // ─── Matchmaking live view ────────────────────────────────────────────────
+
+  @Get("matchmaking/queue")
+  @Roles("staff", "admin")
+  getQueueSnapshot(): Promise<AdminQueueSnapshot> {
+    return this.adminService.getQueueSnapshot();
   }
 
   // ─── Overview drill-downs ─────────────────────────────────────────────────

@@ -9,6 +9,7 @@ import type {
   AdminDashboardSummary,
   AdminMatchDetail,
   AdminPlayerResponse,
+  AdminQueueSnapshot,
   AdminRankConfigItem,
   AdminSanctionEntry,
   AdminTransactionJournalEntry,
@@ -29,7 +30,7 @@ import { auth as authApi, admin } from "../../lib/api";
 import { withToken, logout } from "../../lib/auth";
 import { Nav } from "../../components/Nav";
 
-type Tab = "overview" | "analytics" | "community" | "economy" | "settings" | "moderation" | "players" | "journal";
+type Tab = "overview" | "analytics" | "community" | "economy" | "settings" | "moderation" | "players" | "journal" | "matchmaking";
 
 const STATUS_COLORS: Record<string, string> = {
   draft: "tag-purple",
@@ -73,9 +74,25 @@ export default function AdminPage() {
   const [settingsError, setSettingsError] = useState<string | null>(null);
   const [rankedWait, setRankedWait] = useState(90);
   const [matchSize, setMatchSize] = useState(2);
+  const [maxMmrGap, setMaxMmrGap] = useState(400);
   const [rankedWin, setRankedWin] = useState(32);
   const [rankedLoss, setRankedLoss] = useState(-24);
   const [purchaseEnabled, setPurchaseEnabled] = useState(true);
+  // Reward settings
+  const [rankedBaseXp, setRankedBaseXp] = useState(120);
+  const [unrankedBaseXp, setUnrankedBaseXp] = useState(90);
+  const [funBaseXp, setFunBaseXp] = useState(60);
+  const [winBonusXp, setWinBonusXp] = useState(60);
+  const [lossXp, setLossXp] = useState(25);
+  const [rankedSoftBase, setRankedSoftBase] = useState(50);
+  const [rankedSoftWinBonus, setRankedSoftWinBonus] = useState(25);
+  const [unrankedSoftBase, setUnrankedSoftBase] = useState(40);
+  const [unrankedSoftWinBonus, setUnrankedSoftWinBonus] = useState(20);
+  const [funSoftBase, setFunSoftBase] = useState(25);
+  const [funSoftWinBonus, setFunSoftWinBonus] = useState(10);
+  // Queue snapshot
+  const [queueSnapshot, setQueueSnapshot] = useState<AdminQueueSnapshot | null>(null);
+  const [queueLoading, setQueueLoading] = useState(false);
 
   // Rank configs
   const [rankConfigs, setRankConfigs] = useState<AdminRankConfigItem[]>([]);
@@ -159,9 +176,23 @@ export default function AdminPage() {
           setSettings(s);
           setRankedWait(s.matchmaking.rankedQueueMaxWaitSeconds);
           setMatchSize(s.matchmaking.matchSize);
+          setMaxMmrGap(s.matchmaking.maxMmrGap);
           setRankedWin(s.mmr.rankedWinDelta);
           setRankedLoss(s.mmr.rankedLossDelta);
           setPurchaseEnabled(s.economy.purchaseEnabled);
+          if (s.rewards) {
+            setRankedBaseXp(s.rewards.rankedBaseXp);
+            setUnrankedBaseXp(s.rewards.unrankedBaseXp);
+            setFunBaseXp(s.rewards.funBaseXp);
+            setWinBonusXp(s.rewards.winBonusXp);
+            setLossXp(s.rewards.lossXp);
+            setRankedSoftBase(s.rewards.rankedSoftBase);
+            setRankedSoftWinBonus(s.rewards.rankedSoftWinBonus);
+            setUnrankedSoftBase(s.rewards.unrankedSoftBase);
+            setUnrankedSoftWinBonus(s.rewards.unrankedSoftWinBonus);
+            setFunSoftBase(s.rewards.funSoftBase);
+            setFunSoftWinBonus(s.rewards.funSoftWinBonus);
+          }
         }
         if (signalsData.status === "fulfilled") setSignals(signalsData.value);
         if (histData.status === "fulfilled") setModHistory(histData.value);
@@ -183,6 +214,16 @@ export default function AdminPage() {
     if (next === "players" && players.length === 0) handleLoadPlayers();
     if (next === "settings" && !ranksLoaded) handleLoadRanks();
     if (next === "journal") handleLoadJournalSubTab("transactions");
+    if (next === "matchmaking") handleLoadQueueSnapshot();
+  }
+
+  async function handleLoadQueueSnapshot() {
+    setQueueLoading(true);
+    try {
+      setQueueSnapshot(await withToken((t) => admin.getQueueSnapshot(t)));
+    } catch { /* ignore */ } finally {
+      setQueueLoading(false);
+    }
   }
 
   async function handleLoadJournalSubTab(sub: "logs" | "transactions" | "sanctions") {
@@ -426,9 +467,16 @@ export default function AdminPage() {
     try {
       const updated = await withToken((t) =>
         admin.updateSettings({
-          matchmaking: { rankedQueueMaxWaitSeconds: rankedWait, matchSize },
+          matchmaking: { rankedQueueMaxWaitSeconds: rankedWait, matchSize, maxMmrGap },
           mmr: { rankedWinDelta: rankedWin, rankedLossDelta: rankedLoss },
-          economy: { purchaseEnabled }
+          economy: { purchaseEnabled },
+          rewards: {
+            rankedBaseXp, unrankedBaseXp, funBaseXp,
+            winBonusXp, lossXp,
+            rankedSoftBase, rankedSoftWinBonus,
+            unrankedSoftBase, unrankedSoftWinBonus,
+            funSoftBase, funSoftWinBonus
+          }
         }, t)
       );
       setSettings(updated);
@@ -509,7 +557,7 @@ export default function AdminPage() {
           <p className="section-title">Studio backoffice</p>
 
           <div className="tab-bar" style={{ marginBottom: "1.5rem", flexWrap: "wrap", gap: "0.25rem" }}>
-            {(["overview", "analytics", "community", "economy", "settings", "moderation", "players", "journal"] as Tab[]).map((t) => (
+            {(["overview", "analytics", "matchmaking", "community", "economy", "settings", "moderation", "players", "journal"] as Tab[]).map((t) => (
               <button
                 key={t}
                 className={`tab-btn${tab === t ? " active" : ""}`}
@@ -706,6 +754,99 @@ export default function AdminPage() {
                 </div>
               </div>
             </>
+          )}
+
+          {/* ── Matchmaking ───────────────────────────────────────────────── */}
+          {tab === "matchmaking" && (
+            <div style={{ display: "grid", gap: "1.5rem" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                <span style={{ color: "var(--text-muted)", fontSize: "0.82rem" }}>
+                  MMR gap limit: <strong style={{ color: "var(--cyan)" }}>{queueSnapshot?.maxMmrGap ?? "…"}</strong>
+                  {" · "}Team size: <strong style={{ color: "var(--cyan)" }}>{queueSnapshot?.teamSize ?? "…"}</strong>
+                </span>
+                <button className="btn btn-sm" disabled={queueLoading} onClick={handleLoadQueueSnapshot}>
+                  {queueLoading ? "…" : "Refresh"}
+                </button>
+              </div>
+
+              {/* In-queue players */}
+              <div className="card" style={{ overflowX: "auto" }}>
+                <div className="card-header">
+                  <span className="card-title">Players in queue</span>
+                  <span className="tag tag-cyan">{queueSnapshot?.inQueue.length ?? 0}</span>
+                </div>
+                {queueLoading && !queueSnapshot
+                  ? <div style={{ color: "var(--cyan)", fontSize: "0.85rem" }}>Loading…</div>
+                  : queueSnapshot?.inQueue.length === 0
+                    ? <div style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>Queue empty.</div>
+                    : (
+                      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.82rem" }}>
+                        <thead>
+                          <tr style={{ color: "var(--text-muted)", textAlign: "left" }}>
+                            <th style={{ padding: "0.4rem 0.5rem" }}>Player</th>
+                            <th style={{ padding: "0.4rem 0.5rem" }}>Mode</th>
+                            <th style={{ padding: "0.4rem 0.5rem", textAlign: "right" }}>MMR</th>
+                            <th style={{ padding: "0.4rem 0.5rem" }}>Rank</th>
+                            <th style={{ padding: "0.4rem 0.5rem" }}>In queue since</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {queueSnapshot?.inQueue.map((entry) => (
+                            <tr key={entry.playerId} style={{ borderTop: "1px solid var(--border)" }}>
+                              <td style={{ padding: "0.4rem 0.5rem" }}>
+                                {entry.pseudo ?? <span style={{ fontFamily: "monospace", fontSize: "0.72rem", color: "var(--text-muted)" }}>{entry.playerId.slice(0, 8)}</span>}
+                              </td>
+                              <td style={{ padding: "0.4rem 0.5rem" }}>
+                                <span className={`tag ${entry.mode === "ranked" ? "tag-cyan" : entry.mode === "unranked" ? "tag-purple" : "tag-gold"}`}>{entry.mode}</span>
+                              </td>
+                              <td style={{ padding: "0.4rem 0.5rem", textAlign: "right", fontFamily: "monospace" }}>{entry.mmr}</td>
+                              <td style={{ padding: "0.4rem 0.5rem" }}>{entry.rank}</td>
+                              <td style={{ padding: "0.4rem 0.5rem", color: "var(--text-muted)", fontSize: "0.75rem" }}>
+                                {new Date(entry.queuedAt).toLocaleTimeString()}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    )
+                }
+              </div>
+
+              {/* Live matches */}
+              <div className="card">
+                <div className="card-header">
+                  <span className="card-title">Live matches</span>
+                  <span className="tag tag-green">{queueSnapshot?.liveMatches.length ?? 0}</span>
+                </div>
+                {queueSnapshot?.liveMatches.length === 0
+                  ? <div style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>No live matches.</div>
+                  : (
+                    <div style={{ display: "grid", gap: "0.75rem" }}>
+                      {queueSnapshot?.liveMatches.map((match) => (
+                        <div key={match.matchId} style={{ border: "1px solid var(--border)", borderRadius: "0.5rem", padding: "0.75rem 1rem" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.5rem" }}>
+                            <span className={`tag ${match.mode === "ranked" ? "tag-cyan" : match.mode === "unranked" ? "tag-purple" : "tag-gold"}`}>{match.mode}</span>
+                            <span style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>{match.matchId.slice(0, 12)}…</span>
+                            <span style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>{new Date(match.startedAt).toLocaleTimeString()}</span>
+                            <span style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>· {match.teamSize}v{match.teamSize}</span>
+                          </div>
+                          <div style={{ display: "flex", gap: "1.5rem", flexWrap: "wrap" }}>
+                            {match.participants.map((p, i) => (
+                              <div key={p.playerId} style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.82rem" }}>
+                                {i > 0 && <span style={{ color: "var(--text-muted)", marginRight: "0.75rem" }}>vs</span>}
+                                <span>{p.pseudo ?? <span style={{ fontFamily: "monospace", fontSize: "0.72rem", color: "var(--text-muted)" }}>{p.playerId.slice(0, 8)}</span>}</span>
+                                <span style={{ fontFamily: "monospace", color: "var(--cyan)", fontSize: "0.78rem" }}>{p.mmr}</span>
+                                <span style={{ color: "var(--text-muted)", fontSize: "0.75rem" }}>{p.rank}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )
+                }
+              </div>
+            </div>
           )}
 
           {/* ── Analytics ─────────────────────────────────────────────────── */}
@@ -1107,16 +1248,22 @@ export default function AdminPage() {
                 )}
                 <form className="card auth-form" onSubmit={handleSaveSettings}>
                   <div className="card-header"><span className="card-title">Matchmaking</span></div>
-                  <div className="form-group">
-                    <label className="form-label">Ranked queue max wait (seconds)</label>
-                    <input className="form-input" type="number" value={rankedWait} onChange={(e) => setRankedWait(Number(e.target.value))} disabled={user?.role !== "admin"} />
+                  <div className="grid-2">
+                    <div className="form-group">
+                      <label className="form-label">Ranked queue max wait (s)</label>
+                      <input className="form-input" type="number" value={rankedWait} onChange={(e) => setRankedWait(Number(e.target.value))} disabled={user?.role !== "admin"} />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Match size</label>
+                      <input className="form-input" type="number" min={2} value={matchSize} onChange={(e) => setMatchSize(Number(e.target.value))} disabled={user?.role !== "admin"} />
+                    </div>
                   </div>
                   <div className="form-group">
-                    <label className="form-label">Match size</label>
-                    <input className="form-input" type="number" min={2} value={matchSize} onChange={(e) => setMatchSize(Number(e.target.value))} disabled={user?.role !== "admin"} />
+                    <label className="form-label">Max MMR gap between opponents</label>
+                    <input className="form-input" type="number" min={0} value={maxMmrGap} onChange={(e) => setMaxMmrGap(Number(e.target.value))} disabled={user?.role !== "admin"} />
                   </div>
 
-                  <div className="card-header" style={{ marginTop: "0.5rem" }}><span className="card-title">MMR</span></div>
+                  <div className="card-header" style={{ marginTop: "0.5rem" }}><span className="card-title">MMR deltas</span></div>
                   <div className="grid-2">
                     <div className="form-group">
                       <label className="form-label">Ranked win delta</label>
@@ -1134,6 +1281,47 @@ export default function AdminPage() {
                       <input type="checkbox" checked={purchaseEnabled} onChange={(e) => setPurchaseEnabled(e.target.checked)} disabled={user?.role !== "admin"} style={{ marginRight: "0.5rem" }} />
                       Purchases enabled
                     </label>
+                  </div>
+
+                  <div className="card-header" style={{ marginTop: "0.5rem" }}><span className="card-title">XP rewards per match</span></div>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.5rem" }}>
+                    <div className="form-group" style={{ margin: 0 }}>
+                      <label className="form-label" style={{ fontSize: "0.75rem" }}>Ranked base XP</label>
+                      <input className="form-input" type="number" min={0} value={rankedBaseXp} onChange={(e) => setRankedBaseXp(Number(e.target.value))} disabled={user?.role !== "admin"} />
+                    </div>
+                    <div className="form-group" style={{ margin: 0 }}>
+                      <label className="form-label" style={{ fontSize: "0.75rem" }}>Unranked base XP</label>
+                      <input className="form-input" type="number" min={0} value={unrankedBaseXp} onChange={(e) => setUnrankedBaseXp(Number(e.target.value))} disabled={user?.role !== "admin"} />
+                    </div>
+                    <div className="form-group" style={{ margin: 0 }}>
+                      <label className="form-label" style={{ fontSize: "0.75rem" }}>Fun base XP</label>
+                      <input className="form-input" type="number" min={0} value={funBaseXp} onChange={(e) => setFunBaseXp(Number(e.target.value))} disabled={user?.role !== "admin"} />
+                    </div>
+                    <div className="form-group" style={{ margin: 0 }}>
+                      <label className="form-label" style={{ fontSize: "0.75rem" }}>Win bonus XP</label>
+                      <input className="form-input" type="number" min={0} value={winBonusXp} onChange={(e) => setWinBonusXp(Number(e.target.value))} disabled={user?.role !== "admin"} />
+                    </div>
+                    <div className="form-group" style={{ margin: 0 }}>
+                      <label className="form-label" style={{ fontSize: "0.75rem" }}>Loss XP</label>
+                      <input className="form-input" type="number" min={0} value={lossXp} onChange={(e) => setLossXp(Number(e.target.value))} disabled={user?.role !== "admin"} />
+                    </div>
+                  </div>
+
+                  <div className="card-header" style={{ marginTop: "0.5rem" }}><span className="card-title">Soft currency rewards per match</span></div>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.5rem" }}>
+                    {[
+                      { label: "Ranked base", val: rankedSoftBase, set: setRankedSoftBase },
+                      { label: "Ranked win bonus", val: rankedSoftWinBonus, set: setRankedSoftWinBonus },
+                      { label: "Unranked base", val: unrankedSoftBase, set: setUnrankedSoftBase },
+                      { label: "Unranked win bonus", val: unrankedSoftWinBonus, set: setUnrankedSoftWinBonus },
+                      { label: "Fun base", val: funSoftBase, set: setFunSoftBase },
+                      { label: "Fun win bonus", val: funSoftWinBonus, set: setFunSoftWinBonus }
+                    ].map(({ label, val, set }) => (
+                      <div key={label} className="form-group" style={{ margin: 0 }}>
+                        <label className="form-label" style={{ fontSize: "0.75rem" }}>{label}</label>
+                        <input className="form-input" type="number" min={0} value={val} onChange={(e) => set(Number(e.target.value))} disabled={user?.role !== "admin"} />
+                      </div>
+                    ))}
                   </div>
 
                   {settings && (

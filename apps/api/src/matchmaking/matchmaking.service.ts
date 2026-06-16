@@ -80,6 +80,7 @@ const MMR_DELTAS: Record<GameMode, { win: number; loss: number }> = {
 
 const PLACEMENT_MMR = 1000;
 const MATCH_TIMEOUT_MS = 15_000;
+const DEFAULT_MAX_MMR_GAP = 400;
 
 @Injectable()
 export class MatchmakingService implements OnModuleInit {
@@ -89,6 +90,7 @@ export class MatchmakingService implements OnModuleInit {
   private readonly matchTimers = new Map<string, NodeJS.Timeout>();
   /** Live rank config cache — seeded from DB, refreshed on CRUD. */
   private cachedRanks: RankConfig[] = [...RANK_CONFIGS];
+  private cachedMaxMmrGap = DEFAULT_MAX_MMR_GAP;
 
   constructor(
     @Inject(PrismaService) private readonly prisma: PrismaService,
@@ -110,6 +112,15 @@ export class MatchmakingService implements OnModuleInit {
       });
     }
     await this.reloadRankConfigs();
+    await this.reloadMatchmakingSettings();
+  }
+
+  async reloadMatchmakingSettings(): Promise<void> {
+    const row = await this.prisma.studioSetting.findUnique({ where: { key: "matchmaking" } });
+    if (row?.value) {
+      const val = row.value as { maxMmrGap?: number };
+      if (typeof val.maxMmrGap === "number") this.cachedMaxMmrGap = val.maxMmrGap;
+    }
   }
 
   async reloadRankConfigs(): Promise<void> {
@@ -132,7 +143,17 @@ export class MatchmakingService implements OnModuleInit {
     this.removeFromQueues(actor.id);
 
     const queue = this.getQueue(mode);
-    const opponent = queue.shift();
+    const actorMmr = await this.getMmr(actor.id, mode);
+    let opponent: QueueEntry | undefined;
+    for (let i = 0; i < queue.length; i++) {
+      const entry = queue[i]!;
+      const opponentMmr = await this.getMmr(entry.playerId, mode);
+      if (Math.abs(opponentMmr - actorMmr) <= this.cachedMaxMmrGap) {
+        opponent = entry;
+        queue.splice(i, 1);
+        break;
+      }
+    }
 
     if (opponent) {
       const matchId = randomUUID();
@@ -279,6 +300,18 @@ export class MatchmakingService implements OnModuleInit {
   getRankConfig(): RankConfig[] {
     return [...this.cachedRanks];
   }
+
+  getQueueEntries(): { playerId: string; mode: GameMode; queuedAt: string }[] {
+    const result: { playerId: string; mode: GameMode; queuedAt: string }[] = [];
+    for (const [mode, entries] of this.queues) {
+      for (const e of entries) {
+        result.push({ playerId: e.playerId, mode, queuedAt: e.queuedAt });
+      }
+    }
+    return result;
+  }
+
+  getMaxMmrGap(): number { return this.cachedMaxMmrGap; }
 
   getActivePlayerStatuses(): { playerId: string; state: "online" | "in_queue" | "in_match"; mode?: GameMode; matchId?: string; queuedAt?: string }[] {
     return [...this.statuses.entries()]

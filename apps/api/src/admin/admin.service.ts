@@ -5,9 +5,13 @@ import type {
   AdminCreateRankConfigRequest,
   AdminCreateStoreItemRequest,
   AdminDashboardSummary,
+  AdminLiveMatch,
+  AdminLiveMatchParticipant,
   AdminMatchDetail,
   AdminMatchParticipantDetail,
   AdminPlayerResponse,
+  AdminQueueEntry,
+  AdminQueueSnapshot,
   AdminRankConfigItem,
   AdminSanctionEntry,
   AdminTransactionJournalEntry,
@@ -34,12 +38,21 @@ import type {
 } from "@gamedash/contracts";
 import type { AuthenticatedUser } from "../auth/auth.types";
 import { PrismaService } from "../prisma/prisma.service";
+import { EconomyService } from "../economy/economy.service";
 import { MatchmakingService } from "../matchmaking/matchmaking.service";
+import { ProgressionService } from "../progression/progression.service";
 
 const DEFAULT_SETTINGS: StudioSettingsResponse = {
-  matchmaking: { rankedQueueMaxWaitSeconds: 90, funQueueMaxWaitSeconds: 45, matchSize: 2 },
+  matchmaking: { rankedQueueMaxWaitSeconds: 90, funQueueMaxWaitSeconds: 45, matchSize: 2, maxMmrGap: 400 },
   mmr: { placementMmr: 1000, rankedWinDelta: 32, rankedLossDelta: -24, unrankedWinDelta: 10, unrankedLossDelta: -8 },
   economy: { starterSoftBalance: 1000, starterHardBalance: 20, purchaseEnabled: true, refundWindowHours: 24 },
+  rewards: {
+    rankedBaseXp: 120, unrankedBaseXp: 90, funBaseXp: 60,
+    winBonusXp: 60, drawBonusXp: 40, lossXp: 25,
+    rankedSoftBase: 50, rankedSoftWinBonus: 25,
+    unrankedSoftBase: 40, unrankedSoftWinBonus: 20,
+    funSoftBase: 25, funSoftWinBonus: 10
+  },
   updatedAt: new Date(0).toISOString()
 };
 
@@ -47,7 +60,9 @@ const DEFAULT_SETTINGS: StudioSettingsResponse = {
 export class AdminService {
   constructor(
     @Inject(PrismaService) private readonly prisma: PrismaService,
-    @Inject(MatchmakingService) private readonly matchmakingService: MatchmakingService
+    @Inject(MatchmakingService) private readonly matchmakingService: MatchmakingService,
+    @Inject(ProgressionService) private readonly progressionService: ProgressionService,
+    @Inject(EconomyService) private readonly economyService: EconomyService
   ) {}
 
   async getDashboard(): Promise<AdminDashboardSummary> {
@@ -91,6 +106,7 @@ export class AdminService {
       matchmaking: { ...current.matchmaking, ...body.matchmaking },
       mmr: { ...current.mmr, ...body.mmr },
       economy: { ...current.economy, ...body.economy },
+      rewards: { ...current.rewards, ...body.rewards },
       updatedAt: new Date().toISOString(),
       updatedBy: actor.id
     };
@@ -113,6 +129,11 @@ export class AdminService {
         update: { value: next.economy as never, updatedById: actor.id }
       }),
       this.prisma.studioSetting.upsert({
+        where: { key: "rewards" },
+        create: { key: "rewards", value: next.rewards as never, updatedById: actor.id },
+        update: { value: next.rewards as never, updatedById: actor.id }
+      }),
+      this.prisma.studioSetting.upsert({
         where: { key: "__meta" },
         create: { key: "__meta", value: { updatedAt: next.updatedAt, updatedBy: actor.id }, updatedById: actor.id },
         update: { value: { updatedAt: next.updatedAt, updatedBy: actor.id }, updatedById: actor.id }
@@ -122,6 +143,12 @@ export class AdminService {
     await this.prisma.auditLog.create({
       data: { actorId: actor.id, action: "admin.settings.update", targetType: "studio_settings", targetId: "global", metadata: { sections: Object.keys(body) } as never }
     });
+
+    await Promise.all([
+      this.matchmakingService.reloadMatchmakingSettings(),
+      this.progressionService.reloadRewardSettings(),
+      this.economyService.reloadRewardSettings()
+    ]);
 
     return next;
   }
@@ -279,16 +306,78 @@ export class AdminService {
   }
 
   private async loadSettings(): Promise<StudioSettingsResponse> {
-    const rows = await this.prisma.studioSetting.findMany({ where: { key: { in: ["matchmaking", "mmr", "economy", "__meta"] } } });
+    const rows = await this.prisma.studioSetting.findMany({ where: { key: { in: ["matchmaking", "mmr", "economy", "rewards", "__meta"] } } });
     const byKey = Object.fromEntries(rows.map((r) => [r.key, r.value]));
     const meta = byKey["__meta"] as { updatedAt?: string; updatedBy?: string } | undefined;
 
     return {
-      matchmaking: (byKey["matchmaking"] as unknown as StudioSettingsResponse["matchmaking"]) ?? DEFAULT_SETTINGS.matchmaking,
-      mmr: (byKey["mmr"] as unknown as StudioSettingsResponse["mmr"]) ?? DEFAULT_SETTINGS.mmr,
-      economy: (byKey["economy"] as unknown as StudioSettingsResponse["economy"]) ?? DEFAULT_SETTINGS.economy,
+      matchmaking: { ...DEFAULT_SETTINGS.matchmaking, ...(byKey["matchmaking"] as unknown as Partial<StudioSettingsResponse["matchmaking"]> ?? {}) },
+      mmr: { ...DEFAULT_SETTINGS.mmr, ...(byKey["mmr"] as unknown as Partial<StudioSettingsResponse["mmr"]> ?? {}) },
+      economy: { ...DEFAULT_SETTINGS.economy, ...(byKey["economy"] as unknown as Partial<StudioSettingsResponse["economy"]> ?? {}) },
+      rewards: { ...DEFAULT_SETTINGS.rewards, ...(byKey["rewards"] as unknown as Partial<StudioSettingsResponse["rewards"]> ?? {}) },
       updatedAt: meta?.updatedAt ?? DEFAULT_SETTINGS.updatedAt,
       updatedBy: meta?.updatedBy
+    };
+  }
+
+  async getQueueSnapshot(): Promise<AdminQueueSnapshot> {
+    const settings = await this.loadSettings();
+    const queueEntries = this.matchmakingService.getQueueEntries();
+    const activeStatuses = this.matchmakingService.getActivePlayerStatuses();
+
+    const inMatchStatuses = activeStatuses.filter((s) => s.state === "in_match" && s.matchId);
+    const matchIds = [...new Set(inMatchStatuses.map((s) => s.matchId!))];
+    const playerIds = [...new Set([
+      ...queueEntries.map((e) => e.playerId),
+      ...inMatchStatuses.map((s) => s.playerId)
+    ])];
+
+    const [profiles, mmrRecords, matches] = await Promise.all([
+      this.prisma.playerProfile.findMany({ where: { userId: { in: playerIds } }, select: { userId: true, pseudo: true } }),
+      this.prisma.playerMmr.findMany({ where: { userId: { in: playerIds } } }),
+      matchIds.length > 0
+        ? this.prisma.match.findMany({ where: { id: { in: matchIds } }, include: { participants: true } })
+        : Promise.resolve([])
+    ]);
+
+    const pseudoMap = new Map(profiles.map((p) => [p.userId, p.pseudo]));
+    const mmrMap = new Map<string, number>();
+    const rankMap = new Map<string, string>();
+    for (const r of mmrRecords) {
+      mmrMap.set(`${r.userId}:${r.mode.toLowerCase()}`, r.mmr);
+      rankMap.set(`${r.userId}:${r.mode.toLowerCase()}`, r.rankDiv ? `${r.rankTier} ${r.rankDiv}`.trim() : r.rankTier);
+    }
+
+    const inQueue: AdminQueueEntry[] = queueEntries.map((e) => ({
+      playerId: e.playerId,
+      pseudo: pseudoMap.get(e.playerId),
+      mode: e.mode,
+      mmr: mmrMap.get(`${e.playerId}:${e.mode}`) ?? 1000,
+      rank: rankMap.get(`${e.playerId}:${e.mode}`) ?? "Unranked",
+      queuedAt: e.queuedAt
+    }));
+
+    const liveMatches: AdminLiveMatch[] = matches.map((m) => ({
+      matchId: m.id,
+      mode: m.mode.toLowerCase() as GameMode,
+      startedAt: m.startedAt.toISOString(),
+      teamSize: settings.matchmaking.matchSize,
+      participants: m.participants.map((p): AdminLiveMatchParticipant => {
+        const mode = m.mode.toLowerCase();
+        return {
+          playerId: p.userId,
+          pseudo: pseudoMap.get(p.userId),
+          mmr: mmrMap.get(`${p.userId}:${mode}`) ?? 1000,
+          rank: rankMap.get(`${p.userId}:${mode}`) ?? "Unranked"
+        };
+      })
+    }));
+
+    return {
+      inQueue,
+      liveMatches,
+      maxMmrGap: settings.matchmaking.maxMmrGap,
+      teamSize: settings.matchmaking.matchSize
     };
   }
 

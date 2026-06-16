@@ -400,6 +400,22 @@ export interface MatchmakingSettings {
   rankedQueueMaxWaitSeconds: number;
   funQueueMaxWaitSeconds: number;
   matchSize: number;
+  maxMmrGap: number;
+}
+
+export interface RewardSettings {
+  rankedBaseXp: number;
+  unrankedBaseXp: number;
+  funBaseXp: number;
+  winBonusXp: number;
+  drawBonusXp: number;
+  lossXp: number;
+  rankedSoftBase: number;
+  rankedSoftWinBonus: number;
+  unrankedSoftBase: number;
+  unrankedSoftWinBonus: number;
+  funSoftBase: number;
+  funSoftWinBonus: number;
 }
 
 export interface MmrSettings {
@@ -421,6 +437,7 @@ export interface StudioSettingsResponse {
   matchmaking: MatchmakingSettings;
   mmr: MmrSettings;
   economy: EconomySettings;
+  rewards: RewardSettings;
   updatedAt: string;
   updatedBy?: string;
 }
@@ -429,6 +446,7 @@ export interface UpdateStudioSettingsRequest {
   matchmaking?: Partial<MatchmakingSettings>;
   mmr?: Partial<MmrSettings>;
   economy?: Partial<EconomySettings>;
+  rewards?: Partial<RewardSettings>;
 }
 
 export interface AccountModerationRequest {
@@ -634,6 +652,37 @@ export interface AdminSanctionEntry {
   status: string;
   startedAt: string;
   endsAt?: string;
+}
+
+export interface AdminQueueEntry {
+  playerId: string;
+  pseudo?: string;
+  mode: GameMode;
+  mmr: number;
+  rank: string;
+  queuedAt: string;
+}
+
+export interface AdminLiveMatchParticipant {
+  playerId: string;
+  pseudo?: string;
+  mmr: number;
+  rank: string;
+}
+
+export interface AdminLiveMatch {
+  matchId: string;
+  mode: GameMode;
+  startedAt: string;
+  teamSize: number;
+  participants: AdminLiveMatchParticipant[];
+}
+
+export interface AdminQueueSnapshot {
+  inQueue: AdminQueueEntry[];
+  liveMatches: AdminLiveMatch[];
+  maxMmrGap: number;
+  teamSize: number;
 }
 
 export interface AdminCreateRankConfigRequest {

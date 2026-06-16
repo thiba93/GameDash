@@ -18,7 +18,7 @@ import { PrismaService } from "../prisma/prisma.service";
 const INITIAL_SOFT_BALANCE = 1000;
 const INITIAL_HARD_BALANCE = 20;
 
-const SOFT_CURRENCY_PER_MATCH: Record<"ranked" | "unranked" | "fun", { base: number; winBonus: number }> = {
+const DEFAULT_SOFT_PER_MATCH: Record<"ranked" | "unranked" | "fun", { base: number; winBonus: number }> = {
   ranked:   { base: 50, winBonus: 25 },
   unranked: { base: 40, winBonus: 20 },
   fun:      { base: 25, winBonus: 10 }
@@ -67,7 +67,29 @@ const STORE_ITEMS: StoreItem[] = [
 
 @Injectable()
 export class EconomyService {
+  private softPerMatch: Record<"ranked" | "unranked" | "fun", { base: number; winBonus: number }> = {
+    ranked:   { ...DEFAULT_SOFT_PER_MATCH.ranked },
+    unranked: { ...DEFAULT_SOFT_PER_MATCH.unranked },
+    fun:      { ...DEFAULT_SOFT_PER_MATCH.fun }
+  };
+
   constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
+
+  async reloadRewardSettings(): Promise<void> {
+    const row = await this.prisma.studioSetting.findUnique({ where: { key: "rewards" } });
+    if (!row?.value) return;
+    const v = row.value as {
+      rankedSoftBase?: number; rankedSoftWinBonus?: number;
+      unrankedSoftBase?: number; unrankedSoftWinBonus?: number;
+      funSoftBase?: number; funSoftWinBonus?: number;
+    };
+    if (v.rankedSoftBase !== undefined) this.softPerMatch.ranked.base = v.rankedSoftBase;
+    if (v.rankedSoftWinBonus !== undefined) this.softPerMatch.ranked.winBonus = v.rankedSoftWinBonus;
+    if (v.unrankedSoftBase !== undefined) this.softPerMatch.unranked.base = v.unrankedSoftBase;
+    if (v.unrankedSoftWinBonus !== undefined) this.softPerMatch.unranked.winBonus = v.unrankedSoftWinBonus;
+    if (v.funSoftBase !== undefined) this.softPerMatch.fun.base = v.funSoftBase;
+    if (v.funSoftWinBonus !== undefined) this.softPerMatch.fun.winBonus = v.funSoftWinBonus;
+  }
 
   listStoreItems(): StoreItem[] {
     return STORE_ITEMS.filter((i) => i.active).sort((a, b) => a.sortOrder - b.sortOrder);
@@ -272,7 +294,7 @@ export class EconomyService {
     outcome: "win" | "loss" | "draw",
     matchId: string
   ): Promise<number> {
-    const cfg = SOFT_CURRENCY_PER_MATCH[mode];
+    const cfg = this.softPerMatch[mode];
     const amount = cfg.base + (outcome === "win" ? cfg.winBonus : 0);
     const wallet = await this.ensureWallet(userId);
     const balanceBefore = wallet.softBalance;

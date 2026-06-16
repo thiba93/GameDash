@@ -5,6 +5,7 @@ import type {
   AdminDashboardSummary,
   AdminMatchDetail,
   AdminPlayerResponse,
+  AdminQueueSnapshot,
   AdminRankConfigItem,
   AdminSanctionEntry,
   AdminTransactionJournalEntry,
@@ -301,5 +302,8 @@ export const admin = {
     request<AdminTransactionJournalEntry[]>(`/admin/audit/transactions${limit ? `?limit=${limit}` : ""}`, { token }),
 
   getSanctionJournal: (token: string, limit?: number) =>
-    request<AdminSanctionEntry[]>(`/admin/audit/sanctions${limit ? `?limit=${limit}` : ""}`, { token })
+    request<AdminSanctionEntry[]>(`/admin/audit/sanctions${limit ? `?limit=${limit}` : ""}`, { token }),
+
+  getQueueSnapshot: (token: string) =>
+    request<AdminQueueSnapshot>("/admin/matchmaking/queue", { token })
 };
