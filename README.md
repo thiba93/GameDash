@@ -146,7 +146,6 @@ corepack pnpm dev
 | Service | URL |
 |---|---|
 | Frontend | http://localhost:3000 |
-| API | http://localhost:3001/api/v1 |
 | Health check | http://localhost:3001/api/v1/health |
 
 ---
