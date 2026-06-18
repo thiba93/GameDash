@@ -1,39 +1,39 @@
-# Requirements Traceability Matrix
+# Matrice de traçabilité des exigences
 
-## Purpose
+## Objectif
 
-This matrix maps the cahier des charges expectations to concrete repository evidence. It is designed for final review and quick jury questions.
+Cette matrice met en correspondance les attentes du cahier des charges avec des preuves concrètes dans le dépôt. Elle est conçue pour la revue finale et les questions rapides du jury.
 
-## Traceability
+## Traçabilité
 
-| Requirement | Evidence | Validation | Demo proof | Status |
+| Exigence | Preuve | Validation | Preuve de démo | Statut |
 |---|---|---|---|---|
-| Player account creation and login | `apps/api/src/auth`, `contracts/openapi.yaml`, `packages/contracts/src/http.ts`, `prisma/schema.prisma` | `corepack pnpm test`, `corepack pnpm typecheck` | Register/login panel and auth contract | Covered |
-| Role boundaries for player, staff, admin | `apps/api/src/auth/roles.guard.ts`, admin controllers, `docs/security-baseline.md` | `corepack pnpm test` | Protected admin/staff explanation | Covered |
-| Player profile baseline | `apps/api/src/players`, `PlayerProfile` model, OpenAPI player routes | `corepack pnpm validate:openapi`, `corepack pnpm validate:prisma` | Player profile card | Covered |
-| Matchmaking queues | `apps/api/src/matchmaking`, matchmaking DTOs, queue OpenAPI routes | `corepack pnpm test` | Matchmaking card and queue status | Covered |
-| Match result and MMR update | `apps/api/src/matchmaking`, `apps/api/src/matches`, `PlayerMmr` model | `corepack pnpm test` | MMR/rank view and match history | Covered |
-| XP, levels, and rewards | `apps/api/src/progression`, progression DTOs, Prisma progression models | `corepack pnpm test` | Progression card | Covered |
-| Store, wallet, inventory | `apps/api/src/economy`, economy DTOs, wallet/store/inventory models | `corepack pnpm test` | Store, wallet, inventory view | Covered |
-| Transaction traceability | Economy transaction journal, `Transaction` model, audit rules | `corepack pnpm test`, `corepack pnpm validate:prisma` | Purchase accepted/rejected explanation | Covered |
-| UGC map publication | `apps/api/src/maps`, map DTOs, `GameMap` model | `corepack pnpm test` | Community maps panel | Covered |
-| Map versions and release notes | Map version endpoint, `MapVersion` model, OpenAPI map routes | `corepack pnpm validate:openapi` | Map versioning explanation | Covered |
-| Votes, tests, favorites, search | Maps service, contracts, OpenAPI, Prisma map interaction models | `corepack pnpm test` | Map activity and search explanation | Covered |
-| Popularity and creator stats | Maps service derived stats, `docs/mvp-scope.md` | `corepack pnpm test` | Creator/map stats explanation | Covered |
-| Studio dashboard KPIs | `apps/api/src/admin`, admin DTOs, OpenAPI admin routes | `corepack pnpm test` | Studio dashboard panel | Covered |
-| Studio settings | Admin settings endpoints, `StudioSetting` model | `corepack pnpm test` | Matchmaking/MMR/economy tuning explanation | Covered |
-| Account and map moderation | Admin moderation endpoints, moderation models, audit rules | `corepack pnpm test` | Moderation signals/history panel | Covered |
-| Audit logging of critical actions | Security baseline, service audit entries, Prisma `AuditLog` model | `corepack pnpm test` | Show critical-flow test coverage | Covered |
-| API under `/api/v1` | Nest bootstrap and OpenAPI paths | `corepack pnpm validate:openapi` | API health and route examples | Covered |
-| Standard error and request id | Observability middleware/filter, technical handbook | `corepack pnpm test` | Error envelope example | Covered |
-| Runtime health and diagnostics | `apps/api/src/health`, observability service, `RuntimeEvent` model | `corepack pnpm test` | `GET /api/v1/health` | Covered |
-| Realtime fallback behavior | `apps/api/src/realtime`, `docs/event-catalog.md` | `corepack pnpm typecheck` | Explain polling fallback | Covered |
-| Technical documentation | `docs/technical-handbook.md`, `docs/local-setup-native.md` | Documentation review | Open docs during defense | Covered |
-| Security and compliance plan | `docs/security-baseline.md`, `docs/quality-security-hardening.md` | Documentation review | Security talking points | Covered |
-| User guide | `docs/user-guide.md` | Documentation review | User journey explanation | Covered |
-| Demo and defense preparation | `docs/demo-guide.md`, `docs/soutenance-runbook.md` | Documentation review | Live demo sequence | Covered |
-| Business viability | `docs/business-viability-checklist.md` | Documentation review | Product value and risk explanation | Covered |
+| Création de compte joueur et connexion | `apps/api/src/auth`, `contracts/openapi.yaml`, `packages/contracts/src/http.ts`, `prisma/schema.prisma` | `corepack pnpm test`, `corepack pnpm typecheck` | Panneau inscription/connexion et contrat auth | Couvert |
+| Limites de rôles pour player, staff, admin | `apps/api/src/auth/roles.guard.ts`, contrôleurs admin, `docs/security-baseline.md` | `corepack pnpm test` | Explication des routes admin/staff protégées | Couvert |
+| Baseline du profil joueur | `apps/api/src/players`, modèle `PlayerProfile`, routes joueur OpenAPI | `corepack pnpm validate:openapi`, `corepack pnpm validate:prisma` | Carte de profil joueur | Couvert |
+| Files d'attente de matchmaking | `apps/api/src/matchmaking`, DTOs de matchmaking, routes OpenAPI de file d'attente | `corepack pnpm test` | Carte de matchmaking et statut de file d'attente | Couvert |
+| Résultat de match et mise à jour MMR | `apps/api/src/matchmaking`, `apps/api/src/matches`, modèle `PlayerMmr` | `corepack pnpm test` | Vue MMR/rang et historique des matchs | Couvert |
+| XP, niveaux et récompenses | `apps/api/src/progression`, DTOs de progression, modèles de progression Prisma | `corepack pnpm test` | Carte de progression | Couvert |
+| Boutique, portefeuille, inventaire | `apps/api/src/economy`, DTOs d'économie, modèles portefeuille/boutique/inventaire | `corepack pnpm test` | Vue boutique, portefeuille, inventaire | Couvert |
+| Traçabilité des transactions | Journal des transactions d'économie, modèle `Transaction`, règles d'audit | `corepack pnpm test`, `corepack pnpm validate:prisma` | Explication achat accepté/rejeté | Couvert |
+| Publication de map UGC | `apps/api/src/maps`, DTOs de map, modèle `GameMap` | `corepack pnpm test` | Panneau maps communautaires | Couvert |
+| Versions de map et notes de version | Endpoint de version de map, modèle `MapVersion`, routes OpenAPI de map | `corepack pnpm validate:openapi` | Explication du versionnage de map | Couvert |
+| Votes, tests, favoris, recherche | Service de maps, contrats, OpenAPI, modèles d'interaction de map Prisma | `corepack pnpm test` | Explication de l'activité map et de la recherche | Couvert |
+| Popularité et statistiques créateur | Statistiques dérivées du service de maps, `docs/mvp-scope.md` | `corepack pnpm test` | Explication des statistiques créateur/map | Couvert |
+| KPIs du tableau de bord studio | `apps/api/src/admin`, DTOs admin, routes OpenAPI admin | `corepack pnpm test` | Panneau tableau de bord studio | Couvert |
+| Paramètres studio | Endpoints de paramètres admin, modèle `StudioSetting` | `corepack pnpm test` | Explication du réglage matchmaking/MMR/économie | Couvert |
+| Modération de comptes et de maps | Endpoints de modération admin, modèles de modération, règles d'audit | `corepack pnpm test` | Panneau signaux/historique de modération | Couvert |
+| Journalisation d'audit des actions critiques | Baseline de sécurité, entrées d'audit de service, modèle Prisma `AuditLog` | `corepack pnpm test` | Montrer la couverture des tests de flux critiques | Couvert |
+| API sous `/api/v1` | Bootstrap Nest et chemins OpenAPI | `corepack pnpm validate:openapi` | Santé API et exemples de routes | Couvert |
+| Erreur standard et identifiant de requête | Middleware/filtre d'observabilité, handbook technique | `corepack pnpm test` | Exemple d'enveloppe d'erreur | Couvert |
+| Santé runtime et diagnostics | `apps/api/src/health`, service d'observabilité, modèle `RuntimeEvent` | `corepack pnpm test` | `GET /api/v1/health` | Couvert |
+| Comportement de fallback temps réel | `apps/api/src/realtime`, `docs/event-catalog.md` | `corepack pnpm typecheck` | Expliquer le fallback par polling | Couvert |
+| Documentation technique | `docs/technical-handbook.md`, `docs/local-setup-native.md` | Revue documentaire | Ouvrir les docs pendant la soutenance | Couvert |
+| Plan de sécurité et de conformité | `docs/security-baseline.md`, `docs/quality-security-hardening.md` | Revue documentaire | Points de discours sécurité | Couvert |
+| Guide utilisateur | `docs/user-guide.md` | Revue documentaire | Explication du parcours utilisateur | Couvert |
+| Préparation démo et soutenance | `docs/demo-guide.md`, `docs/soutenance-runbook.md` | Revue documentaire | Séquence de démo en direct | Couvert |
+| Viabilité business | `docs/business-viability-checklist.md` | Revue documentaire | Explication de la valeur produit et des risques | Couvert |
 
-## Reading strategy for the jury
+## Stratégie de lecture pour le jury
 
-Use this matrix as the bridge between requirement and proof. If a question challenges a feature, show the relevant row, then open the evidence file and the validation command.
+Utiliser cette matrice comme pont entre l'exigence et la preuve. Si une question remet en cause une fonctionnalité, montrer la ligne correspondante, puis ouvrir le fichier de preuve et la commande de validation.

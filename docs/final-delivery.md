@@ -1,55 +1,55 @@
-# GameDash Final Delivery
+# Livraison finale GameDash
 
-## Purpose
+## Objectif
 
-This document is the entrypoint for the final delivery package. It links the technical, user, demo, business, and grading-readiness material required for the final review.
+Ce document est le point d'entrée du package de livraison finale. Il référence le matériel technique, utilisateur, de démo, business et de préparation à la notation requis pour la revue finale.
 
-## Delivery status
+## État de la livraison
 
-- Roadmap phase: Phase 9 - Finition notation et prochaine iteration.
-- MVP state: demonstrable end-to-end baseline.
-- Validation gate: build, lint, typecheck, tests, OpenAPI validation, and Prisma validation must be green before the demo.
-- Runtime scope: in-memory MVP services backed by Prisma/OpenAPI contracts for the production persistence target.
+- Phase de la feuille de route : Phase 9 - Finition notation et prochaine itération.
+- État du MVP : baseline démontrable de bout en bout.
+- Porte de validation : build, lint, typecheck, tests, validation OpenAPI et validation Prisma doivent être verts avant la démo.
+- Portée runtime : services MVP en mémoire adossés à des contrats Prisma/OpenAPI pour la cible de persistance en production.
 
-## Final package
+## Package final
 
-| Need | Document |
+| Besoin | Document |
 |---|---|
-| Product and scope | `docs/mvp-scope.md` |
-| Roadmap and phase gates | `docs/03-roadmap-gamedash.md`, `docs/phase-gates.md` |
-| Technical API, DB, security, setup | `docs/technical-handbook.md` |
-| Local setup | `docs/local-setup-native.md` |
-| Security and hardening | `docs/security-baseline.md`, `docs/quality-security-hardening.md` |
-| Realtime and fallback | `docs/event-catalog.md` |
-| User guide | `docs/user-guide.md` |
-| Demo and video script | `docs/demo-guide.md` |
-| Defense runbook | `docs/soutenance-runbook.md` |
-| Business viability | `docs/business-viability-checklist.md` |
-| Final review and grading readiness | `docs/phase-9-final-review.md` |
-| Requirements traceability | `docs/requirements-traceability-matrix.md` |
-| Next implementation iteration | `docs/next-iteration-plan.md` |
-| Risks and decisions | `docs/risk-register.md`, `docs/decision-log.md` |
+| Produit et portée | `docs/mvp-scope.md` |
+| Feuille de route et portes de phase | `docs/03-roadmap-gamedash.md`, `docs/phase-gates.md` |
+| API technique, BDD, sécurité, configuration | `docs/technical-handbook.md` |
+| Configuration locale | `docs/local-setup-native.md` |
+| Sécurité et durcissement | `docs/security-baseline.md`, `docs/quality-security-hardening.md` |
+| Temps réel et fallback | `docs/event-catalog.md` |
+| Guide utilisateur | `docs/user-guide.md` |
+| Guide de démo et script vidéo | `docs/demo-guide.md` |
+| Runbook de soutenance | `docs/soutenance-runbook.md` |
+| Viabilité business | `docs/business-viability-checklist.md` |
+| Revue finale et préparation à la notation | `docs/phase-9-final-review.md` |
+| Traçabilité des exigences | `docs/requirements-traceability-matrix.md` |
+| Prochaine itération d'implémentation | `docs/next-iteration-plan.md` |
+| Risques et décisions | `docs/risk-register.md`, `docs/decision-log.md` |
 
-## Demo readiness checklist
+## Checklist de préparation à la démo
 
-- `corepack pnpm install` has been run.
-- `corepack pnpm build` passes.
-- `corepack pnpm lint` passes.
-- `corepack pnpm typecheck` passes.
-- `corepack pnpm test` passes.
-- `corepack pnpm validate:openapi` passes.
-- `corepack pnpm validate:prisma` passes.
-- API can start with `corepack pnpm --filter @gamedash/api dev`.
-- Web can start with `corepack pnpm --filter @gamedash/web dev`.
-- `GET http://localhost:3001/api/v1/health` returns status `ok`.
-- Web demo loads at `http://localhost:3000`.
+- `corepack pnpm install` a été exécuté.
+- `corepack pnpm build` passe.
+- `corepack pnpm lint` passe.
+- `corepack pnpm typecheck` passe.
+- `corepack pnpm test` passe.
+- `corepack pnpm validate:openapi` passe.
+- `corepack pnpm validate:prisma` passe.
+- L'API peut démarrer avec `corepack pnpm --filter @gamedash/api dev`.
+- Le web peut démarrer avec `corepack pnpm --filter @gamedash/web dev`.
+- `GET http://localhost:3001/api/v1/health` retourne le statut `ok`.
+- La démo web se charge sur `http://localhost:3000`.
 
-## Recommended review flow
+## Parcours de revue recommandé
 
-1. Open this file to show delivery structure.
-2. Run the validation suite to prove repository health.
-3. Open the web app and walk through the visible player and studio surfaces.
-4. Use `docs/demo-guide.md` for the live demo sequence.
-5. Use `docs/technical-handbook.md` for API, database, security, and setup questions.
-6. Use `docs/requirements-traceability-matrix.md` to answer cahier des charges coverage questions.
-7. Finish with `docs/business-viability-checklist.md` and `docs/next-iteration-plan.md` to show product viability and next steps.
+1. Ouvrir ce fichier pour montrer la structure de la livraison.
+2. Exécuter la suite de validation pour prouver la santé du dépôt.
+3. Ouvrir l'application web et parcourir les surfaces joueur et studio visibles.
+4. Utiliser `docs/demo-guide.md` pour la séquence de démo en direct.
+5. Utiliser `docs/technical-handbook.md` pour les questions sur l'API, la base de données, la sécurité et la configuration.
+6. Utiliser `docs/requirements-traceability-matrix.md` pour répondre aux questions de couverture du cahier des charges.
+7. Conclure avec `docs/business-viability-checklist.md` et `docs/next-iteration-plan.md` pour montrer la viabilité du produit et les prochaines étapes.

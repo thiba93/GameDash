@@ -1,71 +1,71 @@
-# Backlog MVP - Vertical Slices
+# Backlog MVP - Tranches verticales
 
-## Slice 1 - Auth baseline
-Status: done
-- API: register/login/refresh/logout endpoints.
-- Schema: user, profile, refresh token.
-- Contracts: auth request/response DTOs.
-- Validation: auth route smoke tests + typecheck.
+## Tranche 1 - Base auth
+Statut : terminé
+- API : endpoints inscription/connexion/rafraîchissement/déconnexion.
+- Schéma : utilisateur, profil, refresh token.
+- Contrats : DTOs de requête/réponse auth.
+- Validation : tests smoke de routes auth + vérification des types.
 
-## Slice 2 - Matchmaking and MMR baseline
-Status: done
-- API: queue join/leave/status.
-- API: match result submit.
-- API: player mmr and match history.
-- Schema: queue entry, match, participant, player mmr.
-- Contracts: queue/match/mmr DTOs.
+## Tranche 2 - Base matchmaking et MMR
+Statut : terminé
+- API : rejoindre/quitter la file d'attente/statut.
+- API : soumission du résultat de match.
+- API : MMR joueur et historique des matchs.
+- Schéma : entrée de file d'attente, match, participant, MMR joueur.
+- Contrats : DTOs file d'attente/match/MMR.
 
-## Slice 3 - Progression baseline
-Status: done
-- API: player progression, progression rules, level rewards.
-- API: match result awards XP and grants level-up rewards.
-- Schema: account progression, level rewards, player reward grants.
-- Contracts: progression, XP rules, level reward DTOs.
+## Tranche 3 - Base progression
+Statut : terminé
+- API : progression joueur, règles de progression, récompenses de niveau.
+- API : le résultat de match attribue de l'XP et accorde les récompenses de passage de niveau.
+- Schéma : progression de compte, récompenses de niveau, attributions de récompenses joueur.
+- Contrats : DTOs progression, règles XP, récompenses de niveau.
 
-## Slice 4 - Economy baseline
-Status: done
-- API: store items, wallet, purchase transaction.
-- Schema: wallet, store item, transaction, inventory item.
-- Contracts: wallet/store/purchase DTOs.
+## Tranche 4 - Base économique
+Statut : terminé
+- API : articles de boutique, portefeuille, transaction d'achat.
+- Schéma : portefeuille, article de boutique, transaction, article d'inventaire.
+- Contrats : DTOs portefeuille/boutique/achat.
 
-## Slice 5 - UGC maps baseline
-Status: done
-- API: create map, add version, vote, test, list maps.
-- Schema: map, map version, vote, test, favorite.
-- Contracts: map creation/version/vote/test DTOs.
+## Tranche 5 - Base UGC maps
+Statut : terminé
+- API : créer une map, ajouter une version, voter, tester, lister les maps.
+- Schéma : map, version de map, vote, test, favori.
+- Contrats : DTOs création de map/version/vote/test.
 
-## Slice 6 - Admin and observability baseline
-Status: done
-- API: admin dashboard KPIs, settings, moderation signals, and moderation history.
-- Schema: sanctions, moderation events, audit log.
-- Realtime: event catalog namespaces and fallback docs.
-- Contracts: admin summary and moderation DTOs.
+## Tranche 6 - Base admin et observabilité
+Statut : terminé
+- API : KPI du dashboard admin, paramètres, signaux de modération et historique de modération.
+- Schéma : sanctions, événements de modération, journal d'audit.
+- Temps réel : namespaces du catalogue d'événements et docs de fallback.
+- Contrats : DTOs résumé admin et modération.
 
-## Slice 7 - Quality and security hardening
-Status: done
-- API: request-id middleware, standard error envelope, enriched health response.
-- Schema: runtime event baseline for future durable observability.
-- Tests: critical cross-service flow coverage and observability coverage.
-- Docs: hardening notes, permission/logging review, and performance baseline.
+## Tranche 7 - Durcissement qualité et sécurité
+Statut : terminé
+- API : middleware d'identifiant de requête, enveloppe d'erreur standard, réponse de santé enrichie.
+- Schéma : base d'événement runtime pour une observabilité durable future.
+- Tests : couverture des flux inter-services critiques et couverture de l'observabilité.
+- Docs : notes de durcissement, revue des permissions/journalisation et baseline de performance.
 
-## Slice 8 - Final delivery and defense
-Status: done
-- Docs: final delivery index, technical handbook, user guide, demo guide, defense runbook.
-- Docs: business viability checklist and production follow-up summary.
-- Validation: mandatory suite documented as the final Go/No-Go gate.
-- Demo: live sequence and fallback plan documented.
+## Tranche 8 - Livraison finale et soutenance
+Statut : terminé
+- Docs : index de livraison finale, handbook technique, guide utilisateur, guide de démo, runbook de soutenance.
+- Docs : checklist de viabilité métier et résumé des suivis de production.
+- Validation : suite obligatoire documentée comme porte finale Go/No-Go.
+- Démo : séquence en direct et plan de secours documentés.
 
-## Slice 9 - Final review and grading readiness
-Status: done
-- Docs: phase 9 final review scorecard and grade-risk answers.
-- Docs: requirements traceability matrix from cahier des charges expectations to repository evidence.
-- Docs: next iteration plan with prioritized acceptance criteria.
-- Delivery: final package index and defense flow updated.
+## Tranche 9 - Revue finale et disponibilité pour la notation
+Statut : terminé
+- Docs : fiche de revue finale Phase 9 et réponses aux risques de notation.
+- Docs : matrice de traçabilité des exigences du cahier des charges vers les preuves du dépôt.
+- Docs : plan de prochaine itération avec critères d'acceptation priorisés.
+- Livraison : index du package final et flux de soutenance mis à jour.
 
-## Definition of done for every slice
-- OpenAPI updated.
-- Prisma schema updated.
-- Contracts package updated.
-- API endpoints wired and buildable.
-- Lint and typecheck passing.
-- Scope and security docs updated if behavior changes.
+## Définition du terminé pour chaque tranche
+- OpenAPI mis à jour.
+- Schéma Prisma mis à jour.
+- Package de contrats mis à jour.
+- Endpoints API branchés et buildables.
+- Lint et vérification des types passants.
+- Docs de périmètre et de sécurité mis à jour si le comportement change.

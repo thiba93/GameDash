@@ -59,7 +59,7 @@ flowchart LR
     BO --> BI[(KPI Views)]
 ```
 
-## 4. Modele de donnees (ERD simplifie)
+## 4. Modèle de données (ERD simplifié)
 ```mermaid
 erDiagram
     USER ||--|| PROFILE : has
@@ -89,7 +89,7 @@ erDiagram
     MAP ||--o{ MAP_MODERATION_EVENT : moderated_by
 ```
 
-## 5. Sequence - matchmaking + mise a jour MMR
+## 5. Séquence - matchmaking + mise à jour MMR
 ```mermaid
 sequenceDiagram
     participant J as Joueur
@@ -115,7 +115,7 @@ sequenceDiagram
     Q-->>W: Match closed + rewards XP
 ```
 
-## 6. Sequence - publication/versionning de map
+## 6. Séquence - publication/versionnage de map
 ```mermaid
 sequenceDiagram
     participant J as Joueur
@@ -141,7 +141,7 @@ sequenceDiagram
     U-->>BO: Emit analytics event
 ```
 
-## 7. Etat joueur dans le matchmaking
+## 7. État joueur dans le matchmaking
 ```mermaid
 stateDiagram-v2
     [*] --> Offline

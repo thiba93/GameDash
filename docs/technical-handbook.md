@@ -1,44 +1,44 @@
-# Technical Handbook
+# Manuel Technique
 
-## Architecture summary
+## Résumé de l'architecture
 
-GameDash is a modular monorepo built around:
+GameDash est un monorepo modulaire construit autour de :
 
-- `apps/web`: Next.js player and studio demonstration surface.
-- `apps/api`: NestJS REST API and WebSocket gateways.
-- `packages/contracts`: shared TypeScript DTOs.
-- `contracts/openapi.yaml`: OpenAPI contract for `/api/v1`.
-- `prisma/schema.prisma`: relational data model baseline.
-- `docs`: scope, security, setup, quality, and delivery documentation.
+- `apps/web` : surface de démonstration joueur et studio en Next.js.
+- `apps/api` : API REST NestJS et passerelles WebSocket.
+- `packages/contracts` : DTOs TypeScript partagés.
+- `contracts/openapi.yaml` : contrat OpenAPI pour `/api/v1`.
+- `prisma/schema.prisma` : modèle de données relationnel de référence.
+- `docs` : documentation de périmètre, sécurité, configuration, qualité et livraison.
 
-The MVP runtime uses in-memory repositories for fast demonstration. Prisma and OpenAPI remain the source of truth for the intended persistent production shape.
+Le runtime MVP utilise des dépôts en mémoire pour une démonstration rapide. Prisma et OpenAPI restent la source de vérité pour la forme de production persistante visée.
 
-## API contract
+## Contrat API
 
-Base path: `/api/v1`
+Chemin de base : `/api/v1`
 
-Core endpoint groups:
+Groupes d'endpoints principaux :
 
-| Domain | Routes | Purpose |
+| Domaine | Routes | Objectif |
 |---|---|---|
-| Health | `GET /health` | Runtime health, uptime, checks, request/error metrics. |
-| Auth | `/auth/register`, `/auth/login`, `/auth/refresh`, `/auth/logout`, `/auth/me` | Account lifecycle and token flow. |
-| Players | `/players/me/profile`, `/players/{playerId}/mmr`, `/players/{playerId}/matches`, `/players/{playerId}/progression` | Profile, ranks, history, progression. |
-| Matchmaking | `/matchmaking/queue/join`, `/matchmaking/queue/leave`, `/matchmaking/queue/status` | Queue state and simulated match attribution. |
-| Matches | `/matches/{matchId}/result` | Match result submission, MMR update, XP award. |
-| Economy | `/economy/store/items`, `/economy/wallet`, `/economy/inventory`, `/economy/transactions`, `/economy/transactions/purchase` | Store, wallet, inventory, purchase journal. |
-| Maps | `/maps`, `/maps/{mapId}`, `/maps/{mapId}/versions`, `/maps/{mapId}/votes`, `/maps/{mapId}/tests`, `/maps/{mapId}/favorites` | UGC map lifecycle and interactions. |
-| Admin | `/admin/dashboard`, `/admin/settings`, `/admin/moderation/*` | Studio KPIs, tuning, moderation signals/history/actions. |
+| Health | `GET /health` | Santé du runtime, uptime, vérifications, métriques requêtes/erreurs. |
+| Auth | `/auth/register`, `/auth/login`, `/auth/refresh`, `/auth/logout`, `/auth/me` | Cycle de vie du compte et flux de tokens. |
+| Joueurs | `/players/me/profile`, `/players/{playerId}/mmr`, `/players/{playerId}/matches`, `/players/{playerId}/progression` | Profil, rangs, historique, progression. |
+| Matchmaking | `/matchmaking/queue/join`, `/matchmaking/queue/leave`, `/matchmaking/queue/status` | État de la file et attribution simulée de parties. |
+| Parties | `/matches/{matchId}/result` | Soumission du résultat de partie, mise à jour MMR, attribution XP. |
+| Économie | `/economy/store/items`, `/economy/wallet`, `/economy/inventory`, `/economy/transactions`, `/economy/transactions/purchase` | Boutique, portefeuille, inventaire, journal d'achats. |
+| Cartes | `/maps`, `/maps/{mapId}`, `/maps/{mapId}/versions`, `/maps/{mapId}/votes`, `/maps/{mapId}/tests`, `/maps/{mapId}/favorites` | Cycle de vie des cartes UGC et interactions. |
+| Admin | `/admin/dashboard`, `/admin/settings`, `/admin/moderation/*` | KPIs studio, paramétrage, signaux/historique/actions de modération. |
 
-Contract validation:
+Validation du contrat :
 
 ```bash
 corepack pnpm validate:openapi
 ```
 
-## Error contract
+## Contrat d'erreur
 
-All API errors use the same envelope:
+Toutes les erreurs API utilisent la même enveloppe :
 
 ```json
 {
@@ -53,81 +53,81 @@ All API errors use the same envelope:
 }
 ```
 
-The API also emits or preserves `x-request-id` for traceability.
+L'API émet ou propage également `x-request-id` pour la traçabilité.
 
-## Database model baseline
+## Modèle de données de référence
 
-Prisma models cover the MVP domains:
+Les modèles Prisma couvrent les domaines MVP :
 
-- Identity: `User`, `PlayerProfile`, `RefreshToken`.
-- Competitive loop: `QueueEntry`, `Match`, `MatchParticipant`, `PlayerMmr`, `RankConfig`.
-- Progression: `AccountProgression`, `LevelReward`, `PlayerRewardGrant`.
-- Economy: `Wallet`, `StoreItem`, `Transaction`, `InventoryItem`.
-- UGC maps: `GameMap`, `MapVersion`, `MapVote`, `MapTest`, `MapFavorite`, `MapReport`, `MapModerationEvent`.
-- Studio: `Sanction`, `StudioSetting`, `ModerationSignal`, `ModerationHistory`, `AuditLog`.
-- Observability: `RuntimeEvent`.
+- Identité : `User`, `PlayerProfile`, `RefreshToken`.
+- Boucle compétitive : `QueueEntry`, `Match`, `MatchParticipant`, `PlayerMmr`, `RankConfig`.
+- Progression : `AccountProgression`, `LevelReward`, `PlayerRewardGrant`.
+- Économie : `Wallet`, `StoreItem`, `Transaction`, `InventoryItem`.
+- Cartes UGC : `GameMap`, `MapVersion`, `MapVote`, `MapTest`, `MapFavorite`, `MapReport`, `MapModerationEvent`.
+- Studio : `Sanction`, `StudioSetting`, `ModerationSignal`, `ModerationHistory`, `AuditLog`.
+- Observabilité : `RuntimeEvent`.
 
-Schema validation:
+Validation du schéma :
 
 ```bash
 corepack pnpm validate:prisma
 ```
 
-## Security model
+## Modèle de sécurité
 
-Roles:
+Rôles :
 
-- `player`: player profile, queue, match, economy, progression, map interactions.
-- `staff`: read studio surfaces and apply moderation actions.
-- `admin`: staff permissions plus studio settings updates.
+- `player` : profil joueur, file d'attente, partie, économie, progression, interactions avec les cartes.
+- `staff` : lecture des surfaces studio et application des actions de modération.
+- `admin` : permissions staff plus mises à jour des paramètres studio.
 
-Security controls:
+Contrôles de sécurité :
 
-- PBKDF2-SHA512 password hashing.
-- HMAC-signed access tokens.
-- Refresh tokens stored as hashes and rotated/revoked.
-- Nest guards for authentication and role boundaries.
-- Global validation pipe with unknown field rejection.
-- Standard API error envelope.
-- Audit logs for critical auth, profile, MMR, XP, economy, map, settings, and moderation actions.
+- Hachage des mots de passe PBKDF2-SHA512.
+- Tokens d'accès signés HMAC.
+- Refresh tokens stockés sous forme de hachages et pivotés/révoqués.
+- Guards Nest pour l'authentification et les périmètres de rôles.
+- Pipe de validation global avec rejet des champs inconnus.
+- Enveloppe d'erreur API standard.
+- Journaux d'audit pour les actions critiques d'authentification, de profil, de MMR, d'XP, d'économie, de cartes, de paramètres et de modération.
 
-See `docs/security-baseline.md` for the full baseline.
+Voir `docs/security-baseline.md` pour le référentiel complet.
 
-## Local setup
+## Configuration locale
 
-Install dependencies:
+Installer les dépendances :
 
 ```bash
 corepack pnpm install
 ```
 
-Run API:
+Lancer l'API :
 
 ```bash
 corepack pnpm --filter @gamedash/api dev
 ```
 
-Run web:
+Lancer le frontend :
 
 ```bash
 corepack pnpm --filter @gamedash/web dev
 ```
 
-Health check:
+Vérification de santé :
 
 ```bash
 Invoke-RestMethod http://localhost:3001/api/v1/health
 ```
 
-Web:
+Frontend :
 
 ```text
 http://localhost:3000
 ```
 
-## Mandatory validation suite
+## Suite de validation obligatoire
 
-Run before delivery:
+À exécuter avant toute livraison :
 
 ```bash
 corepack pnpm build
@@ -138,11 +138,11 @@ corepack pnpm validate:openapi
 corepack pnpm validate:prisma
 ```
 
-## Production hardening follow-up
+## Actions de consolidation pour la production
 
-- Replace in-memory services with Prisma repositories.
-- Add migrations and seed data.
-- Persist `RuntimeEvent` and audit logs.
-- Add CI execution for the mandatory validation suite.
-- Add end-to-end browser tests against the running apps.
-- Add pagination and database-backed filtering for list endpoints.
+- Remplacer les services en mémoire par des dépôts Prisma.
+- Ajouter des migrations et des données d'amorçage.
+- Persister les `RuntimeEvent` et les journaux d'audit.
+- Ajouter l'exécution CI pour la suite de validation obligatoire.
+- Ajouter des tests end-to-end navigateur sur les applications en cours d'exécution.
+- Ajouter la pagination et le filtrage basé sur la base de données pour les endpoints de liste.

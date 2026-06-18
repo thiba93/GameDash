@@ -1,14 +1,14 @@
-# Demo Guide and Video Script
+# Guide de démo et script vidéo
 
-## Goal
+## Objectif
 
-Show that GameDash is a complete MVP with a player loop, studio loop, technical quality baseline, and final delivery documentation.
+Montrer que GameDash est un MVP complet avec une boucle joueur, une boucle studio, une baseline de qualité technique et une documentation de livraison finale.
 
-Target duration: 8 to 12 minutes.
+Durée cible : 8 à 12 minutes.
 
-## Preparation
+## Préparation
 
-Run the validation suite before recording or presenting:
+Exécuter la suite de validation avant d'enregistrer ou de présenter :
 
 ```bash
 corepack pnpm build
@@ -19,126 +19,126 @@ corepack pnpm validate:openapi
 corepack pnpm validate:prisma
 ```
 
-Start the apps:
+Démarrer les applications :
 
 ```bash
 corepack pnpm --filter @gamedash/api dev
 corepack pnpm --filter @gamedash/web dev
 ```
 
-Open:
+Ouvrir :
 
-- Web: `http://localhost:3000`
-- API health: `http://localhost:3001/api/v1/health`
+- Web : `http://localhost:3000`
+- Santé API : `http://localhost:3001/api/v1/health`
 
-## Live demo sequence
+## Séquence de démo en direct
 
-### 1. Introduce the product
+### 1. Présenter le produit
 
-Script:
+Script :
 
-> GameDash is a web platform for a competitive online game. It covers the player experience and the studio backoffice in one MVP: account, matchmaking, progression, economy, community maps, monitoring, settings, and moderation.
+> GameDash est une plateforme web pour un jeu en ligne compétitif. Elle couvre l'expérience joueur et le backoffice studio en un seul MVP : compte, matchmaking, progression, économie, maps communautaires, monitoring, paramètres et modération.
 
-Show:
+Montrer :
 
 - `docs/final-delivery.md`
 - `docs/01-analyse-cahier-des-charges.md`
 - `docs/03-roadmap-gamedash.md`
 
-### 2. Show repository health
+### 2. Montrer la santé du dépôt
 
-Script:
+Script :
 
-> The project is validated through a mandatory quality suite: build, lint, typecheck, tests, OpenAPI validation, and Prisma validation.
+> Le projet est validé à travers une suite qualité obligatoire : build, lint, typecheck, tests, validation OpenAPI et validation Prisma.
 
-Show:
+Montrer :
 
-- terminal validation output
+- la sortie de validation dans le terminal
 - `docs/phase-gates.md`
 - `docs/quality-security-hardening.md`
 
-### 3. Show the player surface
+### 3. Montrer la surface joueur
 
-Script:
+Script :
 
-> The player loop starts with identity, then moves into matchmaking, match results, MMR, XP, levels, economy, inventory, and UGC maps.
+> La boucle joueur commence par l'identité, puis passe au matchmaking, aux résultats de match, au MMR, à l'XP, aux niveaux, à l'économie, à l'inventaire et aux maps UGC.
 
-Show in web:
+Montrer dans le web :
 
-- Create account panel
-- Session contract
-- Protected routes
-- Matchmaking card
-- MMR card
-- Recent matches
-- Account progression
-- Wallet/store/inventory
-- Community maps and UGC activity
+- Panneau de création de compte
+- Contrat de session
+- Routes protégées
+- Carte de matchmaking
+- Carte MMR
+- Matchs récents
+- Progression de compte
+- Portefeuille/boutique/inventaire
+- Maps communautaires et activité UGC
 
-### 4. Show the studio surface
+### 4. Montrer la surface studio
 
-Script:
+Script :
 
-> The studio can observe activity, tune matchmaking/MMR/economy, and handle moderation.
+> Le studio peut observer l'activité, régler le matchmaking/MMR/économie et gérer la modération.
 
-Show in web:
+Montrer dans le web :
 
-- Studio dashboard
-- Studio settings
-- Moderation signals
-- Moderation history
+- Tableau de bord studio
+- Paramètres studio
+- Signaux de modération
+- Historique de modération
 
-### 5. Show API and observability
+### 5. Montrer l'API et l'observabilité
 
-Script:
+Script :
 
-> The API exposes a health endpoint with runtime checks and request/error metrics. Errors carry a request id so failures are traceable.
+> L'API expose un endpoint de santé avec des vérifications runtime et des métriques de requêtes/erreurs. Les erreurs portent un identifiant de requête pour que les défaillances soient traçables.
 
-Show:
+Montrer :
 
 - `GET /api/v1/health`
-- error envelope example from `docs/technical-handbook.md`
+- exemple d'enveloppe d'erreur depuis `docs/technical-handbook.md`
 - `docs/security-baseline.md`
 
-### 6. Show data model and contracts
+### 6. Montrer le modèle de données et les contrats
 
-Script:
+Script :
 
-> OpenAPI and Prisma define the stable API and database baselines. The runtime is in-memory for the MVP demo, but the persistence target is already modeled.
+> OpenAPI et Prisma définissent les baselines stables de l'API et de la base de données. Le runtime est en mémoire pour la démo MVP, mais la cible de persistance est déjà modélisée.
 
-Show:
+Montrer :
 
 - `contracts/openapi.yaml`
 - `prisma/schema.prisma`
 - `packages/contracts/src/http.ts`
 - `docs/technical-handbook.md`
 
-### 7. Close with viability and next steps
+### 7. Conclure avec la viabilité et les prochaines étapes
 
-Script:
+Script :
 
-> The MVP is demonstrable and covers the main product risks. The next production steps are persistence wiring, migrations, durable audit/observability, CI, and deeper analytics.
+> Le MVP est démontrable et couvre les principaux risques produit. Les prochaines étapes de production sont le câblage de la persistance, les migrations, l'audit/observabilité durable, le CI et des analytics plus approfondies.
 
-Show:
+Montrer :
 
 - `docs/business-viability-checklist.md`
 - `docs/risk-register.md`
 - `docs/performance-baseline.md`
 
-## Video recording checklist
+## Checklist d'enregistrement vidéo
 
-- Browser zoom is readable.
-- Terminal command output is visible.
-- No local secrets or tokens are shown.
-- Start from `docs/final-delivery.md`.
-- End on the validation result and viability checklist.
+- Le zoom du navigateur est lisible.
+- La sortie des commandes dans le terminal est visible.
+- Aucun secret ou token local n'est affiché.
+- Commencer par `docs/final-delivery.md`.
+- Terminer sur le résultat de validation et la checklist de viabilité.
 
-## Fallback if live runtime fails
+## Fallback si le runtime en direct échoue
 
-If the live app cannot start during the defense:
+Si l'application en direct ne peut pas démarrer pendant la soutenance :
 
-1. Show the last green validation commands.
-2. Show the web source panel in `apps/web/src/app/page.tsx`.
-3. Show API controllers in `apps/api/src`.
-4. Show OpenAPI and Prisma validation outputs.
-5. Continue with the documentation-driven demo sequence.
+1. Montrer les dernières commandes de validation vertes.
+2. Montrer le panneau source web dans `apps/web/src/app/page.tsx`.
+3. Montrer les contrôleurs API dans `apps/api/src`.
+4. Montrer les sorties de validation OpenAPI et Prisma.
+5. Continuer avec la séquence de démo pilotée par la documentation.

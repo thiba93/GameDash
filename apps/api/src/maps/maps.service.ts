@@ -72,6 +72,7 @@ export class MapsService {
         title: this.assertText(body.title, "Map title"),
         description: this.assertText(body.description, "Map description"),
         tags,
+        screenshots: body.screenshots ?? [],
         status: status.toUpperCase() as "DRAFT" | "BETA" | "STABLE" | "HIDDEN",
         popularityScore: 0,
         createdAt: now,
@@ -290,6 +291,7 @@ export class MapsService {
     title: string;
     description: string;
     tags: string[];
+    screenshots: string[];
     status: string;
     popularityScore: number;
     createdAt: Date;
@@ -307,6 +309,7 @@ export class MapsService {
       title: map.title,
       description: map.description,
       tags: map.tags,
+      screenshots: map.screenshots,
       status: map.status.toLowerCase() as MapStatus,
       popularityScore: map.popularityScore,
       latestVersionLabel: map.versions[0]?.versionLabel,

@@ -1,158 +1,158 @@
-# User Guide
+# Guide Utilisateur
 
 ## Audience
 
-This guide explains the MVP from the point of view of the two primary user groups:
+Ce guide explique le MVP du point de vue des deux groupes d'utilisateurs principaux :
 
-- Player.
-- Studio staff or admin.
+- Joueur.
+- Staff studio ou administrateur.
 
-## Player journey
+## Parcours joueur
 
-### 1. Create an account
+### 1. Créer un compte
 
-The player starts from the account creation panel:
+Le joueur commence depuis le panneau de création de compte :
 
 - email
-- password
+- mot de passe
 - pseudo
-- region
-- optional profile metadata
+- région
+- métadonnées de profil optionnelles
 
-Expected result:
+Résultat attendu :
 
-- a player account is created
-- the default role is `player`
-- access and refresh tokens are issued
-- the profile baseline is available
+- un compte joueur est créé
+- le rôle par défaut est `player`
+- des tokens d'accès et de rafraîchissement sont émis
+- le profil de base est disponible
 
-### 2. Review session and protected routes
+### 2. Consulter la session et les routes protégées
 
-The session panel shows:
+Le panneau de session affiche :
 
-- current role
-- profile pseudo
-- revocable refresh-token behavior
+- le rôle actuel
+- le pseudo du profil
+- le comportement de révocation du refresh token
 
-Protected routes require a bearer token. Admin routes require `staff` or `admin`.
+Les routes protégées requièrent un bearer token. Les routes admin requièrent le rôle `staff` ou `admin`.
 
-### 3. Enter matchmaking
+### 3. Rejoindre le matchmaking
 
-The player can join a queue for:
+Le joueur peut rejoindre une file pour :
 
-- ranked
-- unranked
+- classé
+- non classé
 - fun
 
-The MVP simulates match attribution when two players join the same queue mode.
+Le MVP simule l'attribution de parties lorsque deux joueurs rejoignent le même mode de file.
 
-Expected result:
+Résultat attendu :
 
-- player state moves from `online` to `in_queue`
-- when matched, player state moves to `in_match`
-- a match id and opponent id are available
+- l'état du joueur passe de `online` à `in_queue`
+- une fois la correspondance trouvée, l'état passe à `in_match`
+- un identifiant de partie et un identifiant d'adversaire sont disponibles
 
-### 4. Submit a result and view progression
+### 4. Soumettre un résultat et consulter la progression
 
-After result submission:
+Après la soumission d'un résultat :
 
-- MMR is updated.
-- Rank is recalculated.
-- XP is awarded.
-- Level progression is updated.
-- level-up rewards are granted once.
-- audit entries are written for MMR and XP changes.
+- le MMR est mis à jour.
+- le rang est recalculé.
+- des XP sont attribués.
+- la progression de niveau est mise à jour.
+- les récompenses de montée de niveau sont accordées une seule fois.
+- des entrées d'audit sont écrites pour les changements de MMR et d'XP.
 
-The web surface shows:
+La surface web affiche :
 
-- current MMR by mode
-- recent match history
-- rank map
-- account level and XP progress
-- granted and upcoming rewards
+- le MMR actuel par mode
+- l'historique récent des parties
+- la carte des rangs
+- le niveau du compte et la progression XP
+- les récompenses obtenues et à venir
 
-### 5. Use economy features
+### 5. Utiliser les fonctionnalités économiques
 
-The player can review:
+Le joueur peut consulter :
 
-- wallet balances
-- store catalog
-- inventory
-- transaction journal
+- les soldes du portefeuille
+- le catalogue de la boutique
+- l'inventaire
+- le journal des transactions
 
-Purchases are simulated with in-app currency only. No real payment provider is used in the MVP.
+Les achats sont simulés en monnaie in-app uniquement. Aucun fournisseur de paiement réel n'est utilisé dans le MVP.
 
-Expected result:
+Résultat attendu :
 
-- accepted purchases debit wallet and grant inventory
-- rejected purchases are still journaled
-- economy audit entries are written
+- les achats acceptés débitent le portefeuille et alimentent l'inventaire
+- les achats refusés sont tout de même journalisés
+- des entrées d'audit économiques sont écrites
 
-### 6. Use community maps
+### 6. Utiliser les cartes communautaires
 
-The player can:
+Le joueur peut :
 
-- create a map
-- publish a map as beta or stable
-- create versions with release notes
-- vote
-- mark test completion
-- favorite maps
-- search maps
-- review popularity and creator stats
+- créer une carte
+- publier une carte en bêta ou en stable
+- créer des versions avec des notes de publication
+- voter
+- marquer la complétion d'un test
+- mettre des cartes en favoris
+- rechercher des cartes
+- consulter les statistiques de popularité et de créateur
 
-Hidden maps are excluded from default public browsing.
+Les cartes masquées sont exclues de la navigation publique par défaut.
 
-## Studio staff journey
+## Parcours staff studio
 
-### 1. Review dashboard KPIs
+### 1. Consulter les KPIs du tableau de bord
 
-Staff and admins can review:
+Le staff et les administrateurs peuvent consulter :
 
-- active players
-- daily matches
-- virtual revenue
-- map activity
-- moderation signals
-- active sanctions
+- les joueurs actifs
+- les parties quotidiennes
+- les revenus virtuels
+- l'activité des cartes
+- les signaux de modération
+- les sanctions actives
 
-### 2. Review moderation signals
+### 2. Consulter les signaux de modération
 
-Staff and admins can inspect moderation signals and reports.
+Le staff et les administrateurs peuvent inspecter les signaux et rapports de modération.
 
-Expected result:
+Résultat attendu :
 
-- signals remain traceable
-- moderation history is append-only
+- les signaux restent traçables
+- l'historique de modération est en ajout seul
 
-### 3. Moderate accounts and maps
+### 3. Modérer les comptes et les cartes
 
-Staff and admins can:
+Le staff et les administrateurs peuvent :
 
-- warn, suspend, or ban accounts
-- hide, restore, or feature maps
+- avertir, suspendre ou bannir des comptes
+- masquer, restaurer ou mettre en avant des cartes
 
-Expected result:
+Résultat attendu :
 
-- moderation action is recorded
-- audit entry is written with actor, target, action, reason, and metadata
+- l'action de modération est enregistrée
+- une entrée d'audit est écrite avec l'acteur, la cible, l'action, la raison et les métadonnées
 
-## Admin journey
+## Parcours administrateur
 
-Admins can update studio settings for:
+Les administrateurs peuvent mettre à jour les paramètres studio pour :
 
-- matchmaking queue tuning
-- MMR deltas
-- economy starter balances and purchase controls
+- le réglage des files de matchmaking
+- les deltas MMR
+- les soldes de démarrage économiques et les contrôles d'achat
 
-Settings writes are admin-only.
+Les écritures de paramètres sont réservées aux administrateurs.
 
-## Support and troubleshooting
+## Support et dépannage
 
-If a request fails, use:
+En cas d'échec d'une requête, utiliser :
 
-- the response `requestId`
+- le `requestId` de la réponse
 - `GET /api/v1/health`
-- the standard error envelope
+- l'enveloppe d'erreur standard
 - `docs/quality-security-hardening.md`
 - `docs/performance-baseline.md`

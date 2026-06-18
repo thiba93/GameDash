@@ -40,8 +40,25 @@ function CreateMapModal({ onClose, onCreated }: CreateMapModalProps) {
   const [description, setDescription] = useState("");
   const [tags, setTags] = useState("");
   const [status, setStatus] = useState<MapStatus>("draft");
+  const [screenshots, setScreenshots] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  function handleScreenshots(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? []);
+    const readers = files.map(
+      (file) =>
+        new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        })
+    );
+    Promise.all(readers).then((results) =>
+      setScreenshots((prev) => [...prev, ...results].slice(0, 5))
+    );
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -50,7 +67,7 @@ function CreateMapModal({ onClose, onCreated }: CreateMapModalProps) {
     try {
       const tagList = tags.split(",").map((t) => t.trim()).filter(Boolean);
       const created = await withToken((t) =>
-        maps.create({ title, description, tags: tagList, status }, t)
+        maps.create({ title, description, tags: tagList, screenshots, status }, t)
       );
       onCreated(created);
     } catch (err) {
@@ -77,6 +94,40 @@ function CreateMapModal({ onClose, onCreated }: CreateMapModalProps) {
           <div className="form-group">
             <label className="form-label">Tags (comma-separated)</label>
             <input className="form-input" value={tags} onChange={(e) => setTags(e.target.value)} placeholder="arena, pvp, ranked" />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Screenshots (JPG / PNG — max 5)</label>
+            <input
+              className="form-input"
+              type="file"
+              accept="image/jpeg,image/png"
+              multiple
+              onChange={handleScreenshots}
+              style={{ padding: "0.35rem 0.5rem", cursor: "pointer" }}
+            />
+            {screenshots.length > 0 && (
+              <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", marginTop: "0.5rem" }}>
+                {screenshots.map((src, i) => (
+                  <div key={i} style={{ position: "relative" }}>
+                    <img
+                      src={src}
+                      alt={`screenshot ${i + 1}`}
+                      style={{ width: 72, height: 72, objectFit: "cover", borderRadius: 4, border: "1px solid var(--border)" }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setScreenshots((prev) => prev.filter((_, j) => j !== i))}
+                      style={{
+                        position: "absolute", top: 2, right: 2,
+                        background: "rgba(0,0,0,0.6)", color: "#fff",
+                        border: "none", borderRadius: "50%", width: 18, height: 18,
+                        fontSize: 10, cursor: "pointer", lineHeight: "18px", textAlign: "center"
+                      }}
+                    >✕</button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
           <div className="form-group">
             <label className="form-label">Status</label>

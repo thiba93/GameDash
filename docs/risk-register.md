@@ -1,12 +1,12 @@
-# Risk Register
+# Registre des risques
 
-| ID | Risk | Impact | Trigger | Mitigation | Owner |
+| ID | Risque | Impact | Déclencheur | Atténuation | Responsable |
 |---|---|---|---|---|---|
-| R1 | Scope drift into optional features | High | P2 work starts before P0 closure | Enforce P0 gate in backlog and AGENTS rules | Product lead |
-| R2 | MMR logic inconsistency | High | Different formulas used across modules | Single MMR contract + shared types + tests | Backend lead |
-| R3 | Weak auth/session handling | High | Missing refresh rotation or secret hygiene | Security baseline + env discipline + audit rules | Backend lead |
-| R4 | Economy data corruption | High | Non-idempotent transaction writes | Transaction model + explicit invariants + audit log | Backend lead |
-| R5 | UGC moderation gap | Medium | Harmful content not actionable | Moderation entities + admin endpoints + decision log | Product/staff |
-| R6 | Local setup fragmentation | Medium | Team cannot run same stack locally | Native setup guide + health checks + env template | Tech lead |
-| R7 | Contract drift between API and shared types | Medium | DTO mismatch during implementation | OpenAPI-first + `packages/contracts` sync policy | Tech lead |
-| R8 | Realtime instability | Medium | WebSocket disconnects break UX | Document polling fallback and expose fallback endpoints | Full-stack lead |
+| R1 | Dérive du périmètre vers des fonctionnalités optionnelles | Élevé | Le travail P2 commence avant la clôture P0 | Appliquer la porte P0 dans le backlog et les règles AGENTS | Responsable produit |
+| R2 | Incohérence de la logique MMR | Élevé | Formules différentes utilisées entre les modules | Contrat MMR unique + types partagés + tests | Responsable backend |
+| R3 | Gestion auth/session défaillante | Élevé | Rotation de rafraîchissement manquante ou hygiène des secrets | Référentiel de sécurité + discipline env + règles d'audit | Responsable backend |
+| R4 | Corruption des données économiques | Élevé | Écritures de transaction non idempotentes | Modèle de transaction + invariants explicites + journal d'audit | Responsable backend |
+| R5 | Lacune de modération UGC | Moyen | Contenu nuisible non actionnable | Entités de modération + endpoints admin + journal de décision | Produit/staff |
+| R6 | Fragmentation de la configuration locale | Moyen | L'équipe ne peut pas faire tourner le même stack localement | Guide de configuration native + vérifications de santé + template env | Responsable technique |
+| R7 | Dérive de contrat entre API et types partagés | Moyen | Désaccord DTO lors de l'implémentation | OpenAPI-first + politique de synchronisation `packages/contracts` | Responsable technique |
+| R8 | Instabilité temps réel | Moyen | Les déconnexions WebSocket dégradent l'UX | Documenter le fallback par polling et exposer les endpoints de fallback | Responsable full-stack |

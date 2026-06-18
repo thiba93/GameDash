@@ -1,20 +1,20 @@
-# Phase Execution Protocol
+# Protocole d'exécution des phases
 
-## Purpose
+## Objectif
 
-Define how the repository workflow must interpret prompts such as `/phase1`, `/phase 3`, or `/phase 7`.
+Définir comment le workflow du dépôt doit interpréter les invites telles que `/phase1`, `/phase 3` ou `/phase 7`.
 
-This is a prompt convention for sessions that load this repository. It is not a native shell command.
+Il s'agit d'une convention d'invite pour les sessions qui chargent ce dépôt. Ce n'est pas une commande shell native.
 
-## Source of truth
+## Source de vérité
 
-- Phase scope, order, and expected outcomes are defined in `docs/03-roadmap-gamedash.md`.
-- Validation gates are defined in `docs/phase-gates.md`.
-- Repository-local operating rules are defined in `AGENTS.md`.
+- La portée, l'ordre et les résultats attendus des phases sont définis dans `docs/03-roadmap-gamedash.md`.
+- Les portes de validation sont définies dans `docs/phase-gates.md`.
+- Les règles de fonctionnement locales au dépôt sont définies dans `AGENTS.md`.
 
-If two documents disagree, `docs/03-roadmap-gamedash.md` wins for scope and ordering, then `docs/phase-gates.md` wins for pass/fail criteria, then `AGENTS.md` wins for operating behavior.
+En cas de désaccord entre deux documents, `docs/03-roadmap-gamedash.md` l'emporte pour la portée et l'ordre, puis `docs/phase-gates.md` l'emporte pour les critères de réussite/échec, puis `AGENTS.md` l'emporte pour le comportement opérationnel.
 
-## Accepted prompt forms
+## Formes d'invites acceptées
 
 - `/phase0`
 - `/phase 0`
@@ -25,49 +25,49 @@ If two documents disagree, `docs/03-roadmap-gamedash.md` wins for scope and orde
 - `/phase9`
 - `/phase 9`
 
-Any such prompt means: execute the requested roadmap phase end-to-end under this protocol.
+Toute invite de ce type signifie : exécuter la phase de la feuille de route demandée de bout en bout selon ce protocole.
 
-## Mandatory execution flow
+## Flux d'exécution obligatoire
 
-1. Parse the target phase number from the prompt.
-2. Read `AGENTS.md`, `docs/03-roadmap-gamedash.md`, `docs/phase-gates.md`, `docs/mvp-scope.md`, `docs/backlog-mvp.md`, `docs/security-baseline.md`, and `docs/decision-log.md`.
-3. Sync the branch with `main` using `git pull --rebase`.
-4. If rebase conflicts happen, resolve them directly, then continue.
-5. Evaluate every prerequisite phase gate from `0` up to `target - 1`.
-6. If any prerequisite phase fails, stop immediately and return a simple blockage report. Do not implement the requested phase and do not continue to later phases.
-7. If all prerequisite phases pass, implement the target phase with full vertical-slice scope:
-   API + schema + shared contracts + UI + tests + docs.
-8. Update every affected artifact in the same phase when relevant:
-   code, docs, tests, `contracts/openapi.yaml`, `prisma/schema.prisma`, migrations, local seed or fixture data.
-9. Run the mandatory validation suite.
-10. If any validation fails, fix the issue, rerun the failing validation, then rerun the full suite until everything passes or a hard blocker is reached.
-11. Use as many commits as needed during execution, but keep them reviewable and use Conventional Commits.
-12. Push the result to `main`.
-13. If push is rejected because the remote moved, run `git pull --rebase` again, rerun the full validation suite, then retry the push.
-14. Finish with the standard phase report.
+1. Extraire le numéro de phase cible de l'invite.
+2. Lire `AGENTS.md`, `docs/03-roadmap-gamedash.md`, `docs/phase-gates.md`, `docs/mvp-scope.md`, `docs/backlog-mvp.md`, `docs/security-baseline.md` et `docs/decision-log.md`.
+3. Synchroniser la branche avec `main` via `git pull --rebase`.
+4. En cas de conflits de rebase, les résoudre directement, puis continuer.
+5. Évaluer chaque porte de phase prérequise de `0` jusqu'à `cible - 1`.
+6. Si une phase prérequise échoue, s'arrêter immédiatement et retourner un rapport de blocage simple. Ne pas implémenter la phase demandée et ne pas continuer vers les phases ultérieures.
+7. Si toutes les phases prérequises passent, implémenter la phase cible avec une portée verticale complète :
+   API + schéma + contrats partagés + UI + tests + docs.
+8. Mettre à jour chaque artefact affecté dans la même phase si nécessaire :
+   code, docs, tests, `contracts/openapi.yaml`, `prisma/schema.prisma`, migrations, données de seed ou de fixtures locales.
+9. Exécuter la suite de validation obligatoire.
+10. Si une validation échoue, corriger le problème, relancer la validation en échec, puis relancer la suite complète jusqu'à ce que tout passe ou qu'un bloqueur dur soit atteint.
+11. Utiliser autant de commits que nécessaire pendant l'exécution, mais les garder révisables et utiliser les Conventional Commits.
+12. Pousser le résultat vers `main`.
+13. Si le push est rejeté parce que le remote a avancé, relancer `git pull --rebase`, relancer la suite de validation complète, puis réessayer le push.
+14. Terminer avec le rapport de phase standard.
 
-## Blocking rule
+## Règle de blocage
 
-For a requested phase `N`, every earlier phase must already pass its gate on the current branch before implementation starts.
+Pour une phase demandée `N`, chaque phase antérieure doit déjà passer sa porte sur la branche courante avant que l'implémentation ne commence.
 
-Example:
-- `/phase3` must block if phase 0, phase 1, or phase 2 fails.
-- `/phase1` must block if phase 0 fails.
+Exemple :
+- `/phase3` doit bloquer si la phase 0, la phase 1 ou la phase 2 échoue.
+- `/phase1` doit bloquer si la phase 0 échoue.
 
-## Scope correction rule
+## Règle de correction de portée
 
-Once prerequisite phases pass, the agent may fix older defects outside the nominal target phase if they block:
+Une fois les phases prérequises validées, l'agent peut corriger d'anciens défauts en dehors de la phase cible nominale s'ils bloquent :
 
-- implementation of the requested phase
-- repository integrity
-- the mandatory validation suite
-- `git pull --rebase` or `git push`
+- l'implémentation de la phase demandée
+- l'intégrité du dépôt
+- la suite de validation obligatoire
+- `git pull --rebase` ou `git push`
 
-This permission only applies after prerequisite phases pass.
+Cette permission s'applique uniquement après la validation des phases prérequises.
 
-## Mandatory validation suite
+## Suite de validation obligatoire
 
-Run the repository validation commands corresponding to these checks:
+Exécuter les commandes de validation du dépôt correspondant à ces vérifications :
 
 - `build`
 - `lint`
@@ -76,31 +76,31 @@ Run the repository validation commands corresponding to these checks:
 - `validate:openapi`
 - `validate:prisma`
 
-Use the package-manager entrypoints defined by the repository when available.
+Utiliser les points d'entrée du gestionnaire de paquets définis par le dépôt lorsqu'ils sont disponibles.
 
-## Git and reporting rules
+## Règles Git et de reporting
 
-- Work on `main`.
-- Start with `git pull --rebase`.
-- End with `git push` to `main`.
-- Use neutral Conventional Commit messages.
-- Do not mention automation or generated-work wording in commit messages unless the user explicitly asks for it.
+- Travailler sur `main`.
+- Commencer par `git pull --rebase`.
+- Terminer par `git push` vers `main`.
+- Utiliser des messages de Conventional Commit neutres.
+- Ne pas mentionner l'automatisation ou le travail généré dans les messages de commit, sauf si l'utilisateur le demande explicitement.
 
-## Report formats
+## Formats de rapport
 
-### Blockage report
+### Rapport de blocage
 
-Keep it short and include only:
+Rester concis et n'inclure que :
 
-1. Requested phase.
-2. First prerequisite phase that failed.
-3. Gate or validation that failed.
+1. La phase demandée.
+2. La première phase prérequise qui a échoué.
+3. La porte ou la validation qui a échoué.
 
-### Completion report
+### Rapport de complétion
 
-Always include:
+Toujours inclure :
 
-1. Delivered behavior.
-2. Changed files.
-3. Validation executed.
-4. Remaining gaps vs scope.
+1. Le comportement livré.
+2. Les fichiers modifiés.
+3. La validation exécutée.
+4. Les écarts restants par rapport à la portée.

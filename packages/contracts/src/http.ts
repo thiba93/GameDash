@@ -334,6 +334,7 @@ export interface CreateMapRequest {
   title: string;
   description: string;
   tags?: string[];
+  screenshots?: string[];
   status: MapStatus;
 }
 
@@ -399,6 +400,7 @@ export interface MapSummary {
   title: string;
   description: string;
   tags: string[];
+  screenshots: string[];
   status: MapStatus;
   popularityScore: number;
   latestVersionLabel?: string;

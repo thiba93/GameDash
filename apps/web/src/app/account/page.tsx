@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import type { AuthUserResponse } from "@gamedash/contracts";
 import { REGIONS } from "@gamedash/contracts";
 import { auth as authApi, players } from "../../lib/api";
-import { withToken, logout } from "../../lib/auth";
+import { withToken, logout, clearTokens } from "../../lib/auth";
 import { Nav } from "../../components/Nav";
 
 export default function AccountPage() {
@@ -15,6 +15,10 @@ export default function AccountPage() {
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [deleteConfirm, setDeleteConfirm] = useState("");
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const [pseudo, setPseudo] = useState("");
   const [bio, setBio] = useState("");
@@ -55,6 +59,21 @@ export default function AccountPage() {
       setError(err instanceof Error ? err.message : "Failed to save");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleDeleteAccount(e: React.FormEvent) {
+    e.preventDefault();
+    if (deleteConfirm !== user?.email) return;
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      await withToken((t) => players.deleteAccount(t));
+      clearTokens();
+      router.replace("/login");
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : "Failed to delete account");
+      setDeleting(false);
     }
   }
 
@@ -195,6 +214,40 @@ export default function AccountPage() {
                 <span className="settings-val">{user?.role}</span>
               </div>
             </div>
+          </div>
+        </section>
+
+        {/* Danger zone */}
+        <section>
+          <p className="section-title">Danger zone</p>
+          <div className="card" style={{ maxWidth: 480, borderColor: "var(--red, #e05c5c)" }}>
+            <div className="card-header">
+              <span className="card-title" style={{ color: "var(--red, #e05c5c)" }}>Delete account</span>
+            </div>
+            <p style={{ fontSize: "0.85rem", color: "var(--text-secondary)", marginBottom: "1rem", lineHeight: 1.6 }}>
+              This permanently deletes your account and all associated data — profile, match history, wallet, inventory, maps, and sanctions. This action cannot be undone.
+            </p>
+            {deleteError && <div className="error-banner">{deleteError}</div>}
+            <form onSubmit={handleDeleteAccount} style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+              <div className="form-group" style={{ margin: 0 }}>
+                <label className="form-label">Type your email to confirm: <strong>{user?.email}</strong></label>
+                <input
+                  className="form-input"
+                  type="email"
+                  value={deleteConfirm}
+                  onChange={(e) => setDeleteConfirm(e.target.value)}
+                  placeholder={user?.email ?? ""}
+                  autoComplete="off"
+                />
+              </div>
+              <button
+                type="submit"
+                className="btn btn-danger"
+                disabled={deleting || deleteConfirm !== user?.email}
+              >
+                {deleting ? "Deleting…" : "Delete my account permanently"}
+              </button>
+            </form>
           </div>
         </section>
       </main>

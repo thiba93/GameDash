@@ -1,151 +1,151 @@
-# Phase Gates
+# Portes de phase
 
-## Purpose
+## Objectif
 
-Define objective pass/fail gates for each roadmap phase.
+Définir des portes de réussite/échec objectives pour chaque phase de la feuille de route.
 
-A phase is considered complete only when:
+Une phase est considérée comme complète uniquement lorsque :
 
-- the roadmap scope for that phase is implemented
-- the gates below pass on the current branch
-- the mandatory validation suite is green
+- la portée de la feuille de route pour cette phase est implémentée
+- les portes ci-dessous passent sur la branche courante
+- la suite de validation obligatoire est verte
 
-This file derives implementation gates from `docs/03-roadmap-gamedash.md`. The roadmap remains the source of truth for scope and ordering.
+Ce fichier dérive les portes d'implémentation de `docs/03-roadmap-gamedash.md`. La feuille de route reste la source de vérité pour la portée et l'ordre.
 
-## Cross-phase rules
+## Règles inter-phases
 
-Every phase that changes behavior must also update the relevant:
+Chaque phase qui modifie un comportement doit également mettre à jour les éléments concernés :
 
-- API implementation
-- data model and migrations
-- shared contracts
-- OpenAPI contract
+- implémentation de l'API
+- modèle de données et migrations
+- contrats partagés
+- contrat OpenAPI
 - tests
-- technical docs
-- fallback or realtime docs when applicable
+- documentation technique
+- documentation de fallback ou temps réel si applicable
 
-Every phase must preserve:
+Chaque phase doit préserver :
 
-- REST API under `/api/v1`
-- role boundaries `player`, `staff`, `admin`
-- audit logging for critical actions
-- security baseline rules
+- l'API REST sous `/api/v1`
+- les limites de rôles `player`, `staff`, `admin`
+- la journalisation d'audit pour les actions critiques
+- les règles de la baseline de sécurité
 
-## Phase 0 gate - Cadrage et socle
+## Porte de la phase 0 - Cadrage et socle
 
-Pass when all of the following are true:
+Réussit quand tous les éléments suivants sont vrais :
 
-- monorepo structure exists and is coherent
-- `apps/api` and `apps/web` are present and buildable
-- `contracts/openapi.yaml` exists and is maintained
-- `prisma/schema.prisma` exists and is maintained
-- shared contracts package exists and is consumed by API and web
-- base docs exist for scope, backlog, security, decisions, risks, realtime fallback, and local setup
-- repository scripts exist for `build`, `lint`, `typecheck`, `test`, `validate:openapi`, and `validate:prisma`
+- la structure monorepo existe et est cohérente
+- `apps/api` et `apps/web` sont présents et compilables
+- `contracts/openapi.yaml` existe et est maintenu
+- `prisma/schema.prisma` existe et est maintenu
+- le package de contrats partagés existe et est consommé par l'API et le web
+- les docs de base existent pour la portée, le backlog, la sécurité, les décisions, les risques, le fallback temps réel et la configuration locale
+- les scripts du dépôt existent pour `build`, `lint`, `typecheck`, `test`, `validate:openapi` et `validate:prisma`
 
-## Phase 1 gate - Identite, Auth, RBAC
+## Porte de la phase 1 - Identité, Auth, RBAC
 
-Pass when all of the following are true:
+Réussit quand tous les éléments suivants sont vrais :
 
-- registration, login, refresh, and logout are implemented under `/api/v1/auth`
-- passwords are hashed and never stored or echoed in plaintext
-- access and refresh token flow is implemented
-- refresh tokens are revocable server-side
-- roles `player`, `staff`, and `admin` are enforced in code
-- player profile baseline exists with pseudo, avatar, region, and bio at minimum
-- sensitive auth and admin actions write audit logs
-- endpoints are secured and tested
+- l'inscription, la connexion, le rafraîchissement et la déconnexion sont implémentés sous `/api/v1/auth`
+- les mots de passe sont hachés et ne sont jamais stockés ni renvoyés en clair
+- le flux de jetons d'accès et de rafraîchissement est implémenté
+- les jetons de rafraîchissement sont révocables côté serveur
+- les rôles `player`, `staff` et `admin` sont appliqués dans le code
+- la baseline du profil joueur existe avec pseudo, avatar, région et bio au minimum
+- les actions d'authentification et d'administration sensibles écrivent des journaux d'audit
+- les endpoints sont sécurisés et testés
 
-## Phase 2 gate - Matchmaking, matchs, MMR, rangs
+## Porte de la phase 2 - Matchmaking, matchs, MMR, rangs
 
-Pass when all of the following are true:
+Réussit quand tous les éléments suivants sont vrais :
 
-- multi-mode queues exist for ranked, unranked, and fun
-- player state transitions are represented across online, queue, and match
-- simulated match attribution exists
-- match result submission persists a match outcome
-- MMR update logic exists and is applied after match results
-- MMR to rank mapping is configurable
-- match history can be queried with stable payloads
-- player-facing progression views for MMR and ranks exist in the UI
-- MMR updates write audit logs
+- les files d'attente multi-modes existent pour classé, non classé et fun
+- les transitions d'état du joueur sont représentées entre en ligne, en file d'attente et en match
+- l'attribution de match simulée existe
+- la soumission des résultats de match persiste un résultat de match
+- la logique de mise à jour du MMR existe et est appliquée après les résultats de match
+- la correspondance MMR vers rang est configurable
+- l'historique des matchs peut être consulté avec des payloads stables
+- les vues de progression orientées joueur pour le MMR et les rangs existent dans l'UI
+- les mises à jour du MMR écrivent des journaux d'audit
 
-## Phase 3 gate - Progression, XP, niveaux
+## Porte de la phase 3 - Progression, XP, niveaux
 
-Pass when all of the following are true:
+Réussit quand tous les éléments suivants sont vrais :
 
-- XP is awarded after match completion
-- account level is persisted and exposed
-- level progression is visible on the player surface
-- level-up rewards are modeled and granted
-- progression rules are covered by tests
-- if quests are implemented, they remain optional and documented as optional
+- l'XP est attribuée après la fin d'un match
+- le niveau de compte est persisté et exposé
+- la progression de niveau est visible sur la surface joueur
+- les récompenses de montée de niveau sont modélisées et accordées
+- les règles de progression sont couvertes par des tests
+- si des quêtes sont implémentées, elles restent optionnelles et documentées comme optionnelles
 
-## Phase 4 gate - Economie, boutique, inventaire
+## Porte de la phase 4 - Économie, boutique, inventaire
 
-Pass when all of the following are true:
+Réussit quand tous les éléments suivants sont vrais :
 
-- soft and hard currency are modeled explicitly
-- store catalog is persisted and queryable
-- wallet balances are persisted and queryable
-- purchase flow updates wallet, inventory, and transaction history consistently
-- transaction journal is immutable or append-only by design
-- simulated payment behavior is documented when used
-- economy actions write audit logs
-- transaction integrity is covered by tests
+- les devises soft et hard sont modélisées explicitement
+- le catalogue de la boutique est persisté et interrogeable
+- les soldes du portefeuille sont persistés et interrogeables
+- le flux d'achat met à jour le portefeuille, l'inventaire et l'historique des transactions de manière cohérente
+- le journal des transactions est immuable ou en ajout uniquement par conception
+- le comportement de paiement simulé est documenté lorsqu'il est utilisé
+- les actions d'économie écrivent des journaux d'audit
+- l'intégrité des transactions est couverte par des tests
 
-## Phase 5 gate - UGC maps communautaires
+## Porte de la phase 5 - Maps communautaires UGC
 
-Pass when all of the following are true:
+Réussit quand tous les éléments suivants sont vrais :
 
-- map creation flow exists with metadata, tags, and status
-- map versioning exists with release notes
-- votes, tests, favorites, and search are implemented
-- popularity score uses votes, tests, and recency with documented rules
-- creator and map stats are available
-- map publish and update actions write audit logs
-- moderation-relevant data exists for later backoffice use
+- le flux de création de map existe avec métadonnées, tags et statut
+- le versionnage de map existe avec des notes de version
+- les votes, les tests, les favoris et la recherche sont implémentés
+- le score de popularité utilise les votes, les tests et la récence avec des règles documentées
+- les statistiques du créateur et de la map sont disponibles
+- les actions de publication et de mise à jour de map écrivent des journaux d'audit
+- les données pertinentes pour la modération existent pour une utilisation ultérieure dans le backoffice
 
-## Phase 6 gate - Backoffice studio
+## Porte de la phase 6 - Backoffice studio
 
-Pass when all of the following are true:
+Réussit quand tous les éléments suivants sont vrais :
 
-- admin dashboard exposes the core KPIs from the project baseline
-- settings exist for matchmaking, MMR, and economy tuning
-- moderation actions exist for accounts and maps
-- moderation history and reporting or signals are represented
-- admin and staff permissions are enforced
-- moderation and settings actions write audit logs
-- studio workflows are usable end-to-end
+- le tableau de bord admin expose les KPI principaux de la baseline du projet
+- les paramètres existent pour le réglage du matchmaking, du MMR et de l'économie
+- les actions de modération existent pour les comptes et les maps
+- l'historique de modération et les signalements ou signaux sont représentés
+- les permissions admin et staff sont appliquées
+- les actions de modération et de paramètres écrivent des journaux d'audit
+- les workflows du studio sont utilisables de bout en bout
 
-## Phase 7 gate - Durcissement qualite et securite
+## Porte de la phase 7 - Durcissement qualité et sécurité
 
-Pass when all of the following are true:
+Réussit quand tous les éléments suivants sont vrais :
 
-- integration coverage exists for critical user and admin flows
-- error handling is consistent and documented
-- observability is sufficient to diagnose critical failures
-- permissions and logging rules are reviewed and enforced
-- baseline performance bottlenecks have been addressed or documented
-- the repository is stable under the mandatory validation suite
+- une couverture d'intégration existe pour les flux utilisateur et admin critiques
+- la gestion des erreurs est cohérente et documentée
+- l'observabilité est suffisante pour diagnostiquer les défaillances critiques
+- les règles de permissions et de journalisation sont révisées et appliquées
+- les goulots d'étranglement de performance de base ont été traités ou documentés
+- le dépôt est stable sous la suite de validation obligatoire
 
-## Phase 8 gate - Livraison et soutenance
+## Porte de la phase 8 - Livraison et soutenance
 
-Pass when all of the following are true:
+Réussit quand tous les éléments suivants sont vrais :
 
-- technical documentation exists for API, database, security, and setup
-- an initial user guide exists
-- demo script or demo guide exists
-- business viability checklist exists
-- the repository is in a demonstrable state with the validation suite green
+- la documentation technique existe pour l'API, la base de données, la sécurité et la configuration
+- un guide utilisateur initial existe
+- un script de démo ou un guide de démo existe
+- la checklist de viabilité business existe
+- le dépôt est dans un état démontrable avec la suite de validation verte
 
-## Phase 9 gate - Finition notation et prochaine iteration
+## Porte de la phase 9 - Finition notation et prochaine itération
 
-Pass when all of the following are true:
+Réussit quand tous les éléments suivants sont vrais :
 
-- final review material maps cahier des charges expectations to repository evidence
-- a requirements traceability matrix exists
-- remaining grade risks are explicit and paired with defense answers
-- the next implementation iteration is prioritized with acceptance criteria
-- `docs/final-delivery.md` links the phase 9 evidence package
-- the repository remains in a demonstrable state with the validation suite green
+- le matériel de revue finale met en correspondance les attentes du cahier des charges avec les preuves du dépôt
+- une matrice de traçabilité des exigences existe
+- les risques résiduels de notation sont explicites et associés à des réponses de soutenance
+- la prochaine itération d'implémentation est priorisée avec des critères d'acceptation
+- `docs/final-delivery.md` référence le package de preuves de la phase 9
+- le dépôt reste dans un état démontrable avec la suite de validation verte

@@ -300,6 +300,7 @@ model GameMap {
   title            String
   description      String
   tags             String[]
+  screenshots      String[]
   status           MapStatus            @default(DRAFT)
   popularityScore  Float                @default(0)
   reviewStatus     String               @default("pending")

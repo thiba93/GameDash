@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, Inject, Param, Patch, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, Inject, Param, Patch, Post, UseGuards } from "@nestjs/common";
 import type {
   MatchHistoryItem,
   PendingWarning,
@@ -46,6 +46,12 @@ export class PlayersController {
     @Param("id") id: string
   ): Promise<void> {
     return this.authService.acknowledgeWarning(user.id, id);
+  }
+
+  @Delete("me")
+  @HttpCode(204)
+  deleteMyAccount(@CurrentUser() user: AuthenticatedUser): Promise<void> {
+    return this.authService.deleteAccount(user);
   }
 
   @Patch("me/profile")

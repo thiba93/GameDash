@@ -33,7 +33,7 @@ import { REGIONS } from "@gamedash/contracts";
 import { auth as authApi, admin } from "../../lib/api";
 import { withToken, logout } from "../../lib/auth";
 
-type Tab = "overview" | "analytics" | "community" | "economy" | "settings" | "moderation" | "players" | "journal" | "matchmaking";
+type Tab = "overview" | "analytics" | "community" | "economy" | "settings" | "moderation" | "players" | "journal" | "matchmaking" | "ranking";
 
 const STATUS_COLORS: Record<string, string> = {
   draft: "tag-purple",
@@ -112,6 +112,9 @@ export default function AdminPage() {
   const [editRankForm, setEditRankForm] = useState<{ rank: string; minMmr: number; maxMmr: string; sortOrder: number }>({ rank: "", minMmr: 0, maxMmr: "", sortOrder: 0 });
   const [newRank, setNewRank] = useState<AdminCreateRankConfigRequest>({ mode: "ranked", rank: "", minMmr: 0, sortOrder: 0 });
   const [newRankMaxMmr, setNewRankMaxMmr] = useState("");
+
+  // Mobile sidebar
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Journal
   const [journalSubTab, setJournalSubTab] = useState<"logs" | "transactions" | "sanctions">("transactions");
@@ -217,11 +220,13 @@ export default function AdminPage() {
 
   function handleTabChange(next: Tab) {
     setTab(next);
+    setSidebarOpen(false);
     if (next === "analytics" && !analyticsLoaded) handleLoadAnalytics();
     if (next === "community" && !communityLoaded) handleLoadCommunity();
     if (next === "economy" && !economyLoaded) handleLoadEconomy();
     if (next === "players" && players.length === 0) handleLoadPlayers();
     if (next === "settings" && !ranksLoaded) handleLoadRanks();
+    if (next === "ranking" && !ranksLoaded) handleLoadRanks();
     if (next === "journal") handleLoadJournalSubTab("transactions");
     if (next === "matchmaking") handleLoadQueueSnapshot();
     if (next === "moderation") handleLoadMapReports();
@@ -451,10 +456,10 @@ export default function AdminPage() {
       }, t));
       setRankConfigs((prev) => prev.map((r) => r.id === id ? updated : r));
       setEditingRankId(null);
-      setRanksNotice("Rang mis à jour.");
+      setRanksNotice("Rank updated.");
       setTimeout(() => setRanksNotice(null), 2500);
     } catch (err) {
-      setRanksError(err instanceof Error ? err.message : "Erreur");
+      setRanksError(err instanceof Error ? err.message : "Error");
     } finally { setRanksBusy(false); }
   }
 
@@ -464,10 +469,10 @@ export default function AdminPage() {
     try {
       await withToken((t) => admin.deleteRankConfig(id, t));
       setRankConfigs((prev) => prev.filter((r) => r.id !== id));
-      setRanksNotice("Rang supprimé.");
+      setRanksNotice("Rank deleted.");
       setTimeout(() => setRanksNotice(null), 2500);
     } catch (err) {
-      setRanksError(err instanceof Error ? err.message : "Erreur");
+      setRanksError(err instanceof Error ? err.message : "Error");
     } finally { setRanksBusy(false); }
   }
 
@@ -483,10 +488,10 @@ export default function AdminPage() {
       setRankConfigs((prev) => [...prev, created].sort((a, b) => a.mode.localeCompare(b.mode) || a.sortOrder - b.sortOrder));
       setNewRank({ mode: "ranked", rank: "", minMmr: 0, sortOrder: 0 });
       setNewRankMaxMmr("");
-      setRanksNotice("Rang créé.");
+      setRanksNotice("Rank created.");
       setTimeout(() => setRanksNotice(null), 2500);
     } catch (err) {
-      setRanksError(err instanceof Error ? err.message : "Erreur");
+      setRanksError(err instanceof Error ? err.message : "Error");
     } finally { setRanksBusy(false); }
   }
 
@@ -579,6 +584,7 @@ export default function AdminPage() {
     { id: "overview",    icon: "📊", label: "Overview" },
     { id: "analytics",   icon: "📈", label: "Analytics" },
     { id: "matchmaking", icon: "⚔️",  label: "Matchmaking" },
+    { id: "ranking",     icon: "🏆", label: "Ranking" },
     { id: "community",   icon: "🗺️", label: "Community" },
     { id: "economy",     icon: "💰", label: "Economy" },
     { id: "players",     icon: "👥", label: "Players" },
@@ -589,20 +595,21 @@ export default function AdminPage() {
 
   const PAGE_TITLES: Record<Tab, string> = {
     overview: "Overview", analytics: "Analytics", matchmaking: "Matchmaking",
-    community: "Community", economy: "Economy", players: "Players",
+    ranking: "Ranking", community: "Community", economy: "Economy", players: "Players",
     moderation: "Moderation", journal: "Journal", settings: "Settings"
   };
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "var(--bg)" }}>
 
+      {/* Mobile overlay */}
+      <div
+        className={`admin-sidebar-overlay${sidebarOpen ? " open" : ""}`}
+        onClick={() => setSidebarOpen(false)}
+      />
+
       {/* ── Sidebar ─────────────────────────────────────────────────────── */}
-      <aside style={{
-        position: "fixed", top: 0, left: 0, bottom: 0, width: 248,
-        background: "var(--bg-card)",
-        borderRight: "1px solid var(--border)",
-        display: "flex", flexDirection: "column", zIndex: 100, overflowY: "auto"
-      }}>
+      <aside className={`admin-sidebar${sidebarOpen ? " open" : ""}`}>
         <Link href="/dashboard" style={{ display: "block", padding: "2rem 1.5rem 1.5rem", borderBottom: "1px solid var(--border)", textDecoration: "none" }}>
           <div style={{ fontSize: "0.65rem", textTransform: "uppercase", letterSpacing: "0.15em", color: "var(--text-muted)", marginBottom: "0.3rem" }}>Studio</div>
           <div style={{ fontFamily: "Rajdhani, sans-serif", fontSize: "1.4rem", fontWeight: 700, color: "var(--cyan)", letterSpacing: "0.04em" }}>GameDash</div>
@@ -649,8 +656,18 @@ export default function AdminPage() {
       </aside>
 
       {/* ── Main content ────────────────────────────────────────────────── */}
-      <main style={{ marginLeft: 248, flex: 1, minHeight: "100vh", padding: "2.5rem 3rem", boxSizing: "border-box" as const, maxWidth: "calc(100vw - 248px)" }}>
-        <div style={{ marginBottom: "2.5rem", paddingBottom: "1.25rem", borderBottom: "1px solid var(--border)" }}>
+      <main className="admin-main">
+        {/* Mobile topbar */}
+        <div className="admin-mobile-topbar">
+          <button className="admin-hamburger" onClick={() => setSidebarOpen((v) => !v)}>☰</button>
+          <span style={{ fontFamily: "Rajdhani, sans-serif", fontSize: "1.1rem", fontWeight: 700, color: "var(--cyan)", flex: 1 }}>
+            {PAGE_TITLES[tab]}
+          </span>
+          <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 120 }}>
+            {user?.profile?.pseudo ?? user?.email}
+          </span>
+        </div>
+        <div className="admin-desktop-header" style={{ marginBottom: "2.5rem", paddingBottom: "1.25rem", borderBottom: "1px solid var(--border)" }}>
           <h1 style={{ margin: 0, fontSize: "1.75rem", fontFamily: "Rajdhani, sans-serif", fontWeight: 700, letterSpacing: "0.04em" }}>
             {PAGE_TITLES[tab]}
           </h1>
@@ -1425,8 +1442,12 @@ export default function AdminPage() {
                   )}
                 </form>
               </div>
+            </div>
+          )}
 
-              {/* ── Rank configs CRUD ───────────────────────────────────── */}
+          {/* ── Ranking ───────────────────────────────────────────────────── */}
+          {tab === "ranking" && (
+            <div style={{ display: "grid", gap: "2rem", maxWidth: 840 }}>
               <div>
                 {ranksNotice && <div className="success-banner" style={{ marginBottom: "0.75rem" }}>{ranksNotice}</div>}
                 {ranksError && <div className="error-banner" style={{ marginBottom: "0.75rem" }}>{ranksError}</div>}
@@ -1438,16 +1459,16 @@ export default function AdminPage() {
                   </div>
 
                   {ranksBusy && rankConfigs.length === 0
-                    ? <div style={{ color: "var(--cyan)", fontSize: "0.85rem" }}>Chargement…</div>
+                    ? <div style={{ color: "var(--cyan)", fontSize: "0.85rem" }}>Loading…</div>
                     : (
                       <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.8rem" }}>
                         <thead>
                           <tr style={{ color: "var(--text-muted)", textAlign: "left" }}>
                             <th style={{ padding: "0.6rem 0.875rem" }}>Mode</th>
-                            <th style={{ padding: "0.6rem 0.875rem" }}>Rang</th>
+                            <th style={{ padding: "0.6rem 0.875rem" }}>Rank</th>
                             <th style={{ padding: "0.6rem 0.875rem", textAlign: "right" }}>Min MMR</th>
                             <th style={{ padding: "0.6rem 0.875rem", textAlign: "right" }}>Max MMR</th>
-                            <th style={{ padding: "0.6rem 0.875rem", textAlign: "right" }}>Ordre</th>
+                            <th style={{ padding: "0.6rem 0.875rem", textAlign: "right" }}>Order</th>
                             <th style={{ padding: "0.6rem 0.875rem" }}>Actions</th>
                           </tr>
                         </thead>
@@ -1491,7 +1512,7 @@ export default function AdminPage() {
                                   <td style={{ padding: "0.6rem 0.875rem", textAlign: "right", color: "var(--text-muted)" }}>{r.sortOrder}</td>
                                   <td style={{ padding: "0.6rem 0.875rem" }}>
                                     <div style={{ display: "flex", gap: "0.25rem" }}>
-                                      <button className="btn btn-sm" disabled={ranksBusy} onClick={() => startEditRank(r)}>Éditer</button>
+                                      <button className="btn btn-sm" disabled={ranksBusy} onClick={() => startEditRank(r)}>Edit</button>
                                       <button className="btn btn-sm btn-danger" disabled={ranksBusy} onClick={() => handleDeleteRank(r.id)}>✕</button>
                                     </div>
                                   </td>
@@ -1505,9 +1526,9 @@ export default function AdminPage() {
                   }
                 </div>
 
-                {/* ── Formulaire ajout rang ──────────────────────────── */}
+                {/* ── Add rank form ──────────────────────────── */}
                 <form className="card" style={{ marginTop: "1rem" }} onSubmit={handleCreateRank}>
-                  <div className="card-header"><span className="card-title">Ajouter un rang</span></div>
+                  <div className="card-header"><span className="card-title">Add rank</span></div>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: "0.75rem" }}>
                     <div className="form-group" style={{ margin: 0 }}>
                       <label className="form-label" style={{ fontSize: "0.75rem" }}>Mode</label>
@@ -1518,7 +1539,7 @@ export default function AdminPage() {
                       </select>
                     </div>
                     <div className="form-group" style={{ margin: 0, gridColumn: "span 2" }}>
-                      <label className="form-label" style={{ fontSize: "0.75rem" }}>Nom du rang</label>
+                      <label className="form-label" style={{ fontSize: "0.75rem" }}>Rank name</label>
                       <input required className="form-input" style={{ fontSize: "0.8rem" }} placeholder="ex: Gold III" value={newRank.rank} onChange={(e) => setNewRank((f) => ({ ...f, rank: e.target.value }))} />
                     </div>
                     <div className="form-group" style={{ margin: 0 }}>
@@ -1526,16 +1547,16 @@ export default function AdminPage() {
                       <input required className="form-input" type="number" style={{ fontSize: "0.8rem" }} value={newRank.minMmr} onChange={(e) => setNewRank((f) => ({ ...f, minMmr: Number(e.target.value) }))} />
                     </div>
                     <div className="form-group" style={{ margin: 0 }}>
-                      <label className="form-label" style={{ fontSize: "0.75rem" }}>Max MMR (vide = ∞)</label>
+                      <label className="form-label" style={{ fontSize: "0.75rem" }}>Max MMR (empty = ∞)</label>
                       <input className="form-input" type="number" placeholder="∞" style={{ fontSize: "0.8rem" }} value={newRankMaxMmr} onChange={(e) => setNewRankMaxMmr(e.target.value)} />
                     </div>
                     <div className="form-group" style={{ margin: 0 }}>
-                      <label className="form-label" style={{ fontSize: "0.75rem" }}>Ordre</label>
+                      <label className="form-label" style={{ fontSize: "0.75rem" }}>Order</label>
                       <input required className="form-input" type="number" style={{ fontSize: "0.8rem" }} value={newRank.sortOrder} onChange={(e) => setNewRank((f) => ({ ...f, sortOrder: Number(e.target.value) }))} />
                     </div>
                   </div>
                   <button className="btn btn-primary" type="submit" disabled={ranksBusy} style={{ marginTop: "0.75rem" }}>
-                    {ranksBusy ? "…" : "+ Ajouter"}
+                    {ranksBusy ? "…" : "+ Add"}
                   </button>
                 </form>
               </div>

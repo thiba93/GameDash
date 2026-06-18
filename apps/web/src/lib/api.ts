@@ -152,7 +152,10 @@ export const players = {
     request<PendingWarning[]>("/players/me/warnings/pending", { token }),
 
   acknowledgeWarning: (id: string, token: string) =>
-    request<void>(`/players/me/warnings/${id}/acknowledge`, { method: "POST", body: "{}", token })
+    request<void>(`/players/me/warnings/${id}/acknowledge`, { method: "POST", body: "{}", token }),
+
+  deleteAccount: (token: string) =>
+    request<void>("/players/me", { method: "DELETE", token })
 };
 
 // ─── Matchmaking ───────────────────────────────────────────────────────────

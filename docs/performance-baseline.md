@@ -1,27 +1,27 @@
-# Performance Baseline
+# Référentiel de performance
 
-## Phase 7 baseline
+## Référentiel de la phase 7
 
-The MVP remains in-memory for runtime behavior, so the phase 7 performance work focuses on observability and obvious hot paths rather than infrastructure tuning.
+Le MVP reste en mémoire pour le comportement runtime, donc le travail de performance de la phase 7 se concentre sur l'observabilité et les chemins critiques évidents plutôt que sur le réglage de l'infrastructure.
 
-## Measured and exposed signals
+## Signaux mesurés et exposés
 
-- Request count.
-- Error count.
-- Critical error count.
-- Last request timestamp.
-- p95 request duration over the latest request samples.
-- Health status degraded when a critical runtime error is observed.
+- Nombre de requêtes.
+- Nombre d'erreurs.
+- Nombre d'erreurs critiques.
+- Horodatage de la dernière requête.
+- Durée p95 des requêtes sur les derniers échantillons de requêtes.
+- Statut de santé dégradé lorsqu'une erreur runtime critique est observée.
 
-## Current bottleneck review
+## Revue des goulots d'étranglement actuels
 
-- UGC map listing performs in-memory filtering and sorting. This is acceptable for MVP demo data but must move to indexed database queries before production traffic.
-- Audit and moderation history are append-only arrays in runtime services. This is acceptable for a demo process but must move to durable storage for scale and recovery.
-- Next.js type generation is now run before web typecheck to avoid unstable validation behavior around generated route types.
+- Le listing des cartes UGC effectue un filtrage et un tri en mémoire. C'est acceptable pour les données de démo MVP mais doit passer à des requêtes de base de données indexées avant le trafic de production.
+- L'historique d'audit et de modération sont des tableaux en ajout seul dans les services runtime. C'est acceptable pour un processus de démo mais doit passer à un stockage durable pour la montée en charge et la récupération.
+- La génération de types Next.js est désormais exécutée avant la vérification de types web pour éviter un comportement de validation instable autour des types de routes générés.
 
-## Production follow-up
+## Suivi production
 
-- Persist runtime events and audits in PostgreSQL with retention policies.
-- Add pagination to list endpoints before real data volume.
-- Add database indexes matching `prisma/schema.prisma` for map status/popularity, audit action/date, moderation targets, and runtime event source/level/date.
-- Add load testing for queue join, match result submission, map browsing, purchase, and admin dashboard reads.
+- Persister les événements runtime et les audits dans PostgreSQL avec des politiques de rétention.
+- Ajouter la pagination aux endpoints de liste avant un volume de données réel.
+- Ajouter des index de base de données correspondant à `prisma/schema.prisma` pour le statut/popularité des cartes, l'action/date d'audit, les cibles de modération et la source/niveau/date des événements runtime.
+- Ajouter des tests de charge pour la rejoindre la file d'attente, la soumission de résultat de match, la navigation de cartes, les achats et les lectures du tableau de bord admin.

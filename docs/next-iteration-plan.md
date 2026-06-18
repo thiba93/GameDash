@@ -1,66 +1,66 @@
-# Next Iteration Plan
+# Plan de prochaine itération
 
-## Objective
+## Objectif
 
-Move GameDash from a demonstrable MVP to a deployable pilot without adding optional scope before the production foundations are solid.
+Faire passer GameDash d'un MVP démontrable à un pilote déployable sans ajouter de portée optionnelle avant que les fondations de production soient solides.
 
-## Priority order
+## Ordre de priorité
 
-1. Persistence and seed data.
-2. CI/CD and repeatable validation.
-3. Browser E2E tests.
-4. Role-aware frontend connected to the API.
-5. Durable audit and observability.
-6. Deployment preparation.
-7. Deeper analytics and product polish.
+1. Persistance et données de seed.
+2. CI/CD et validation reproductible.
+3. Tests E2E navigateur.
+4. Frontend tenant compte des rôles connecté à l'API.
+5. Audit et observabilité durables.
+6. Préparation au déploiement.
+7. Analytics approfondies et polish produit.
 
-## Recommended next implementation session
+## Session d'implémentation suivante recommandée
 
-Start with the persistence pass. This gives the largest quality gain because it turns the existing contracts, services, and Prisma schema into durable behavior.
+Commencer par la passe de persistance. Cela apporte le gain de qualité le plus important car cela transforme les contrats, services et schéma Prisma existants en comportement durable.
 
-Suggested request:
+Requête suggérée :
 
 ```text
 Implemente la phase 10 persistence et seed data, puis lance la suite complete de validation.
 ```
 
-## Phase 10 candidate - Persistence and seed data
+## Candidat phase 10 - Persistance et données de seed
 
-Goal: replace the main in-memory repositories with Prisma-backed persistence for the critical MVP flows.
+Objectif : remplacer les repositories en mémoire principaux par une persistance adossée à Prisma pour les flux MVP critiques.
 
-Acceptance criteria:
+Critères d'acceptation :
 
-- Auth users, profiles, and refresh tokens persist through Prisma.
-- Matchmaking, matches, MMR, progression, wallet, inventory, transactions, maps, moderation, audits, and runtime events have durable repository boundaries.
-- Database migrations and seed data are documented and executable.
-- Demo seed data covers player, staff, admin, store items, maps, rankings, and moderation samples.
-- Tests either use isolated repository adapters or a documented test database strategy.
-- The full validation suite remains green.
+- Les utilisateurs Auth, les profils et les jetons de rafraîchissement persistent via Prisma.
+- Le matchmaking, les matchs, le MMR, la progression, le portefeuille, l'inventaire, les transactions, les maps, la modération, les audits et les événements runtime ont des frontières de repository durables.
+- Les migrations de base de données et les données de seed sont documentées et exécutables.
+- Les données de seed de démo couvrent les joueurs, le staff, l'admin, les articles de boutique, les maps, les classements et des exemples de modération.
+- Les tests utilisent soit des adaptateurs de repository isolés soit une stratégie de base de données de test documentée.
+- La suite de validation complète reste verte.
 
-## Phase 11 candidate - Connected role-aware UI and E2E
+## Candidat phase 11 - UI connectée tenant compte des rôles et E2E
 
-Goal: turn the current demonstration surface into a role-aware UI connected to live API calls.
+Objectif : transformer la surface de démonstration actuelle en une UI tenant compte des rôles connectée à des appels API en direct.
 
-Acceptance criteria:
+Critères d'acceptation :
 
-- Player login/session state drives player pages.
-- Staff/admin session state drives studio pages.
-- Forms call the API for queue, purchase, map, settings, and moderation flows.
-- Loading, empty, and error states use the standard API error envelope.
-- Playwright smoke tests cover login, player loop, purchase, map interaction, and admin moderation.
+- L'état de session login/joueur pilote les pages joueur.
+- L'état de session staff/admin pilote les pages studio.
+- Les formulaires appellent l'API pour les flux de file d'attente, achat, map, paramètres et modération.
+- Les états de chargement, vide et d'erreur utilisent l'enveloppe d'erreur API standard.
+- Les tests de fumée Playwright couvrent la connexion, la boucle joueur, l'achat, l'interaction avec les maps et la modération admin.
 
-## Phase 12 candidate - Deployment and operations
+## Candidat phase 12 - Déploiement et opérations
 
-Goal: make the project deployable as a pilot.
+Objectif : rendre le projet déployable en tant que pilote.
 
-Acceptance criteria:
+Critères d'acceptation :
 
-- GitHub Actions runs build, lint, typecheck, tests, OpenAPI validation, and Prisma validation on every pull request.
-- Environment variable contracts are documented per environment.
-- PostgreSQL and Redis runtime requirements are explicit.
-- Health checks and request ids are wired into deployment diagnostics.
-- Audit and runtime event retention policies are documented.
+- GitHub Actions exécute build, lint, typecheck, tests, validation OpenAPI et validation Prisma sur chaque pull request.
+- Les contrats de variables d'environnement sont documentés par environnement.
+- Les prérequis runtime PostgreSQL et Redis sont explicites.
+- Les health checks et les identifiants de requête sont câblés dans les diagnostics de déploiement.
+- Les politiques de rétention des audits et des événements runtime sont documentées.
 
-## Scope discipline
+## Discipline de portée
 
-Do not start seasons, notifications, advanced anti-cheat, or real payment processing until the persistence, CI, E2E, and deployment foundations are complete.
+Ne pas démarrer les saisons, les notifications, l'anti-triche avancé ou le traitement de paiements réels tant que les fondations de persistance, CI, E2E et déploiement ne sont pas complètes.

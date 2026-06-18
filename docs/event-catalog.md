@@ -1,18 +1,18 @@
-# Realtime Event Catalog
+# Catalogue d'événements temps réel
 
-## Purpose
-Define baseline WebSocket namespaces and fallback polling strategy.
+## Objectif
+Définir les namespaces WebSocket de base et la stratégie de polling de secours.
 
 ## Namespaces
 
 ### `matchmaking`
-Events:
+Événements :
 - `queue.joined`
 - `queue.left`
 - `queue.status.updated`
 - `match.found`
 
-Payload baseline:
+Charge utile de base :
 ```json
 {
   "playerId": "uuid",
@@ -23,12 +23,12 @@ Payload baseline:
 ```
 
 ### `player-status`
-Events:
+Événements :
 - `player.online`
 - `player.offline`
 - `player.in_match`
 
-Payload baseline:
+Charge utile de base :
 ```json
 {
   "playerId": "uuid",
@@ -38,13 +38,13 @@ Payload baseline:
 ```
 
 ### `admin-monitoring`
-Events:
+Événements :
 - `kpi.players.active.updated`
 - `kpi.matches.daily.updated`
 - `kpi.revenue.virtual.updated`
 - `kpi.maps.activity.updated`
 
-Payload baseline:
+Charge utile de base :
 ```json
 {
   "metric": "kpi.players.active",
@@ -54,16 +54,16 @@ Payload baseline:
 }
 ```
 
-## Fallback polling strategy
-- If WebSocket connection fails, frontend uses polling endpoints:
+## Stratégie de polling de secours
+- En cas d'échec de la connexion WebSocket, le frontend utilise les endpoints de polling :
   - `GET /api/v1/matchmaking/queue/status`
   - `GET /api/v1/players/{playerId}/matches`
   - `GET /api/v1/admin/dashboard`
-- Polling interval baseline:
-  - Matchmaking and player status: every 5 seconds.
-  - Admin monitoring: every 15 seconds.
+- Intervalle de polling de base :
+  - Matchmaking et statut joueur : toutes les 5 secondes.
+  - Supervision admin : toutes les 15 secondes.
 
-## Reliability notes
-- Reconnect with exponential backoff.
-- Use idempotent event handlers in UI state.
-- Timestamp all events in UTC ISO 8601 format.
+## Notes de fiabilité
+- Reconnexion avec backoff exponentiel.
+- Utiliser des gestionnaires d'événements idempotents dans l'état de l'UI.
+- Horodater tous les événements en UTC ISO 8601.

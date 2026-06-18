@@ -1,36 +1,36 @@
-# Local Setup (Native PostgreSQL + Redis)
+# Configuration Locale (PostgreSQL + Redis Natifs)
 
-This project intentionally uses native local installs (no Docker) for now.
+Ce projet utilise intentionnellement des installations locales natives (sans Docker) pour le moment.
 
-## 1. Requirements
+## 1. Prérequis
 - Node.js >= 20
-- pnpm via Corepack (`corepack pnpm`) or a local pnpm install
-- PostgreSQL (local service)
-- Redis (local service)
+- pnpm via Corepack (`corepack pnpm`) ou une installation pnpm locale
+- PostgreSQL (service local)
+- Redis (service local)
 
-## 2. Environment
-Copy values from `.env.example` and adjust credentials if needed.
+## 2. Environnement
+Copier les valeurs depuis `.env.example` et ajuster les identifiants si nécessaire.
 
-Minimum required:
+Minimum requis :
 - `DATABASE_URL`
 - `REDIS_URL`
-- JWT secrets
+- secrets JWT
 
-## 3. PostgreSQL health checks
-Example commands:
+## 3. Vérifications de santé PostgreSQL
+Exemples de commandes :
 ```bash
 psql -h localhost -U postgres -d postgres -c "select version();"
 psql -h localhost -U postgres -d gamedash -c "select now();"
 ```
 
-## 4. Redis health checks
-Example command:
+## 4. Vérifications de santé Redis
+Exemple de commande :
 ```bash
 redis-cli ping
 ```
-Expected output: `PONG`
+Résultat attendu : `PONG`
 
-## 5. Install and validate project
+## 5. Installer et valider le projet
 ```bash
 corepack pnpm install
 corepack pnpm validate:openapi
@@ -39,11 +39,11 @@ corepack pnpm lint
 corepack pnpm typecheck
 ```
 
-## 6. Run apps
+## 6. Lancer les applications
 ```bash
 corepack pnpm --filter @gamedash/api dev
 corepack pnpm --filter @gamedash/web dev
 ```
 
-API health:
+Vérification de santé de l'API :
 `GET http://localhost:3001/api/v1/health`

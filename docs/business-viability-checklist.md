@@ -1,82 +1,82 @@
-# Business Viability Checklist
+# Checklist de viabilité business
 
-## Product positioning
+## Positionnement produit
 
-GameDash targets teams operating a competitive online game with community-created maps. The MVP proves two linked value propositions:
+GameDash cible les équipes opérant un jeu en ligne compétitif avec des maps créées par la communauté. Le MVP prouve deux propositions de valeur liées :
 
-- Players get a visible progression loop and reasons to return.
-- Studio teams get enough control and visibility to operate the game safely.
+- Les joueurs obtiennent une boucle de progression visible et des raisons de revenir.
+- Les équipes studio obtiennent suffisamment de contrôle et de visibilité pour opérer le jeu en toute sécurité.
 
-## MVP value checklist
+## Checklist de valeur MVP
 
-| Area | Evidence | Status |
+| Domaine | Preuve | Statut |
 |---|---|---|
-| Player onboarding | Register, login, refresh, logout, profile baseline | Covered |
-| Competitive loop | Queue, simulated match attribution, match result, MMR/rank history | Covered |
-| Progression | XP, levels, level rewards, progression view | Covered |
-| Economy | Wallet, store, purchase, inventory, append-only transactions | Covered |
-| UGC maps | Publish, version, vote, test, favorite, search, stats | Covered |
-| Studio control | KPIs, settings, moderation signals/history/actions | Covered |
-| Safety | RBAC, audit logs, request ids, standard errors | Covered |
-| Demonstrability | Validation suite and demo guide | Covered |
+| Onboarding joueur | Inscription, connexion, rafraîchissement, déconnexion, baseline de profil | Couvert |
+| Boucle compétitive | File d'attente, attribution de match simulée, résultat de match, historique MMR/rang | Couvert |
+| Progression | XP, niveaux, récompenses de niveau, vue de progression | Couvert |
+| Économie | Portefeuille, boutique, achat, inventaire, transactions en ajout uniquement | Couvert |
+| Maps UGC | Publication, version, vote, test, favori, recherche, statistiques | Couvert |
+| Contrôle studio | KPIs, paramètres, signaux/historique/actions de modération | Couvert |
+| Sécurité | RBAC, journaux d'audit, identifiants de requête, erreurs standardisées | Couvert |
+| Démontabilité | Suite de validation et guide de démo | Couvert |
 
-## Operational viability
+## Viabilité opérationnelle
 
-- The studio can identify moderation issues through signals/history.
-- Critical actions are auditable.
-- Settings allow tuning matchmaking, MMR, and economy behavior.
-- API health and runtime metrics give a first diagnostic surface.
-- Realtime fallbacks are documented for degraded WebSocket behavior.
+- Le studio peut identifier les problèmes de modération via les signaux et l'historique.
+- Les actions critiques sont auditables.
+- Les paramètres permettent de régler le matchmaking, le MMR et le comportement économique.
+- La santé de l'API et les métriques runtime fournissent une première surface de diagnostic.
+- Les fallbacks temps réel sont documentés pour les comportements WebSocket dégradés.
 
-## Revenue and economy viability
+## Viabilité des revenus et de l'économie
 
-The MVP does not process real payments. It validates the internal economy loop:
+Le MVP ne traite pas de vrais paiements. Il valide la boucle d'économie interne :
 
-- virtual currencies
-- item catalog
-- wallet debit
-- inventory grant
-- accepted and rejected transaction journal
-- simulated payment behavior documented as a non-goal for MVP
+- devises virtuelles
+- catalogue d'articles
+- débit du portefeuille
+- attribution d'inventaire
+- journal des transactions acceptées et rejetées
+- comportement de paiement simulé documenté comme non-objectif du MVP
 
-Production monetization can later connect a real payment processor after legal, security, and compliance review.
+La monétisation en production pourra ensuite connecter un vrai processeur de paiement après revue légale, sécurité et conformité.
 
-## UGC viability
+## Viabilité de l'UGC
 
-The UGC loop is viable for controlled community content because it includes:
+La boucle UGC est viable pour du contenu communautaire contrôlé car elle inclut :
 
-- map statuses
-- versions and release notes
-- votes, tests, favorites
-- popularity scoring
-- report/moderation-ready data
-- staff moderation actions
+- statuts de map
+- versions et notes de version
+- votes, tests, favoris
+- scoring de popularité
+- données prêtes pour le signalement et la modération
+- actions de modération du staff
 
-Production follow-up should add file storage, automated moderation, and creator reputation metrics.
+La suite en production devrait ajouter le stockage de fichiers, la modération automatisée et les métriques de réputation des créateurs.
 
-## Main risks still open
+## Principaux risques encore ouverts
 
-| Risk | Production requirement |
+| Risque | Prérequis de production |
 |---|---|
-| In-memory runtime state | Replace with Prisma repositories and migrations. |
-| No real payment provider | Add payment integration only after compliance review. |
-| Limited UI interactivity | Build authenticated role-aware screens over the current contracts. |
-| Limited scale testing | Add load tests for queue, maps, purchases, and dashboard. |
-| Manual deployment | Add CI/CD and environment-specific configuration. |
+| État runtime en mémoire | Remplacer par des repositories Prisma et des migrations. |
+| Pas de vrai fournisseur de paiement | Ajouter l'intégration de paiement uniquement après revue de conformité. |
+| Interactivité UI limitée | Construire des écrans authentifiés tenant compte des rôles sur les contrats actuels. |
+| Tests de charge limités | Ajouter des tests de charge pour la file d'attente, les maps, les achats et le tableau de bord. |
+| Déploiement manuel | Ajouter le CI/CD et la configuration spécifique à l'environnement. |
 
-## Go/No-Go for final presentation
+## Décision Go/No-Go pour la présentation finale
 
-Go when:
+Go quand :
 
-- mandatory validation suite is green
-- API health returns `ok`
-- web page loads locally
-- final delivery docs are present
-- demo guide is rehearsed
+- la suite de validation obligatoire est verte
+- la santé de l'API retourne `ok`
+- la page web se charge localement
+- les docs de livraison finale sont présentes
+- le guide de démo est répété
 
-No-Go when:
+No-Go quand :
 
-- OpenAPI or Prisma validation fails
-- build/typecheck/test is red
-- request auth or role boundaries are broken
-- demo cannot be explained from docs and contracts
+- la validation OpenAPI ou Prisma échoue
+- build/typecheck/test est rouge
+- l'auth de requête ou les limites de rôles sont cassées
+- la démo ne peut pas être expliquée à partir des docs et des contrats

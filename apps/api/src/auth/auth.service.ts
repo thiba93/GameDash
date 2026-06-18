@@ -201,6 +201,11 @@ export class AuthService {
     }));
   }
 
+  async deleteAccount(actor: AuthenticatedUser): Promise<void> {
+    await this.audit(actor.id, "account.delete", "user", actor.id);
+    await this.prisma.user.delete({ where: { id: actor.id } });
+  }
+
   async acknowledgeWarning(userId: string, warningId: string): Promise<void> {
     const warn = await this.prisma.moderationHistory.findFirst({
       where: { id: warningId, targetId: userId, targetType: "account", action: "account.warn" }
